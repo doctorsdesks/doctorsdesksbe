@@ -22,6 +22,7 @@ import { UpdateDoctorDto } from './dto/update-doctor.dto';
   
     @Post()
     create(@Body() createDoctorDto: CreateDoctorDto) {
+      console.info("CreateDoctor called with data:", createDoctorDto);
       return this.doctorsService.create(createDoctorDto);
     }
   

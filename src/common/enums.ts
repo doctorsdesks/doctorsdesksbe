@@ -5,7 +5,8 @@ export enum Gender {
 }
 
 export enum UserStatus {
-    ACTIVE = "Active",
+    NOT_VERIFIED = "Not_Verified",
+    VERIFIED = "Verified",
     BLOCKED = "Blocked"
 }
 
