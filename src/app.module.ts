@@ -6,7 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RequestHeaderInterceptor } from './common/interceptors/request-header.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { DoctorsModule } from './doctors/doctors.module';
+import { DoctorModule } from './doctor/doctor.module';
 
 @Module({
   imports: [
@@ -14,7 +14,7 @@ import { DoctorsModule } from './doctors/doctors.module';
     ConfigModule.forRoot({
       isGlobal: true, // Make it global so you can access it in any module
     }),  
-    DoctorsModule,
+    DoctorModule,
   ],
   controllers: [AppController],
   providers: [

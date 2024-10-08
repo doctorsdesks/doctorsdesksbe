@@ -3,7 +3,6 @@ import {
     Get,
     Post,
     Body,
-    Patch,
     Param,
     Delete,
     UseFilters,
@@ -11,26 +10,25 @@ import {
     InternalServerErrorException,
   } from '@nestjs/common';  
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
-import { DoctorsService } from './doctors.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
-import { UpdateDoctorDto } from './dto/update-doctor.dto';
+import { DoctorService } from './doctor.service';
   
-  @Controller('/v1/doctors')
+  @Controller('/v1/doctor')
   @UseFilters(HttpExceptionFilter)
-  export class DoctorsController {
-    constructor(private readonly doctorsService: DoctorsService) {}
+  export class DoctorController {
+    constructor(private readonly doctorService: DoctorService) {}
   
     @Post()
-    create(@Body() createDoctorDto: CreateDoctorDto) {
+    createDoctor(@Body() createDoctorDto: CreateDoctorDto) {
       console.info("CreateDoctor called with data:", createDoctorDto);
-      return this.doctorsService.create(createDoctorDto);
+      return this.doctorService.createDoctor(createDoctorDto);
     }
   
     @Get()
     findAll() {
       console.info('findAll called from web');
       try {
-        const data = this.doctorsService.findAll();
+        const data = this.doctorService.findAll();
         return data;
       } catch (error) {
         if (error instanceof HttpException) {
@@ -43,7 +41,7 @@ import { UpdateDoctorDto } from './dto/update-doctor.dto';
   
     @Get(':id')
     findOne(@Param('id') id: string) {
-      return this.doctorsService.findOne(id.toString());
+      return this.doctorService.findOne(id.toString());
     }
   
     // @Patch(':id')
@@ -53,7 +51,7 @@ import { UpdateDoctorDto } from './dto/update-doctor.dto';
   
     @Delete(':id')
     remove(@Param('id') id: string) {
-      return this.doctorsService.delete(id.toString());
+      return this.doctorService.delete(id.toString());
     }
   }
   
