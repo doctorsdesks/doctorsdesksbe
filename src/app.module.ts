@@ -10,6 +10,9 @@ import { DoctorModule } from './doctor/doctor.module';
 import { SignupController } from './signup/signup.controller';
 import { SignupService } from './signup/signup.service';
 import { SignupModule } from './signup/signup.module';
+import { ClinicController } from './clinic/clinic.controller';
+import { ClinicService } from './clinic/clinic.service';
+import { ClinicModule } from './clinic/clinic.module';
 
 @Module({
   imports: [
@@ -18,9 +21,9 @@ import { SignupModule } from './signup/signup.module';
       isGlobal: true, // Make it global so you can access it in any module
     }),  
     DoctorModule, 
-    SignupModule,
+    SignupModule, ClinicModule,
   ],
-  controllers: [AppController, SignupController],
+  controllers: [AppController, SignupController, ClinicController],
   providers: [
     AppService,
     {
@@ -31,7 +34,8 @@ import { SignupModule } from './signup/signup.module';
       provide: APP_INTERCEPTOR,
       useClass: RequestHeaderInterceptor
     },
-    SignupService
+    SignupService,
+    ClinicService
   ],
 })
 export class AppModule {}

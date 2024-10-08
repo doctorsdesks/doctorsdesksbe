@@ -20,3 +20,19 @@ export enum Specialization {
     HEART = "Heart"
 }
 
+export enum Day {
+    MONDAY = "Monday",
+    TUESDAY = "Tuesday",
+    WEDNESDAY = "Wednesday",
+    THURSDAY = "Thursday",
+    FRIDAY = "Friday",
+    SATURDAY = "Saturday",
+    SUNDAY = "Sunday"
+}
+
+export enum SlotStatus {
+    OPEN = "Open",
+    BOOKED = "Booked",
+    LOCKED = "Locked"
+}
+
