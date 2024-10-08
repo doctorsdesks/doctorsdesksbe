@@ -11,15 +11,8 @@ export class DoctorService {
   constructor(@InjectModel(Doctor.name) private doctorModel: Model<Doctor>) {}
 
   async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
-    const doctorDetails = {
-      ...createDoctorDto,
-      gender: Gender[createDoctorDto.gender],
-      pincode: createDoctorDto.clinicAddress?.address?.pincode,
-      specialization: createDoctorDto.qualifications[1]?.specialization, 
-    }
-    console.info("doctorCreatedObject Created :", doctorDetails);
-    const createdDoctor = new this.doctorModel(doctorDetails);
-    console.info("doctorCreated :", createdDoctor);
+    console.info("Signup Doctor - doctor service - create doctor called with: ", createDoctorDto);
+    const createdDoctor = new this.doctorModel(createDoctorDto);
     return createdDoctor.save();
   }
 

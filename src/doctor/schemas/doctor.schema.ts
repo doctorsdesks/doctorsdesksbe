@@ -5,6 +5,9 @@ import { Gender, Specialization, UserStatus } from 'src/common/enums';
 @Schema({ timestamps: true }) // Enable timestamps
 export class Doctor extends Document {
   @Prop({ type: String, required: true })
+  phone: string;
+
+  @Prop({ type: String, required: true })
   name: string;
 
   @Prop({ type: String, enum: Object.values(Gender), required: true })
@@ -14,22 +17,21 @@ export class Doctor extends Document {
   email: string;
 
   @Prop({ type: String, required: true })
-  phone: string;
+  pincode: string;
 
   @Prop({ type: [String], required: true })
   languages: string[];
 
-  @Prop({ type: String, required: true })
-  pincode: string;
-
   @Prop({ type: String })
   specialization: Specialization;
+
+  @Prop({ type: String, required: true })
+  registrationNumber: string;
 
   @Prop({ type: String, enum: Object.values(UserStatus), default: UserStatus.NOT_VERIFIED })
   docStatus: UserStatus;
 
-  @Prop({ type: String, required: true })
-  registrationNumber: string;
+  // createAt and updatedAt will be added automatically by mongo.
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);

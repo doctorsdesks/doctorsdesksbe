@@ -8,6 +8,7 @@ import { DoctorController } from './doctor.controller';
   imports: [
     MongooseModule.forFeature([{ name: Doctor.name, schema: DoctorSchema }]),
   ],
+  exports: [DoctorService],
   providers: [DoctorService],
   controllers: [DoctorController]
 })

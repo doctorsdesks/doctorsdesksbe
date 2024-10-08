@@ -7,6 +7,9 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RequestHeaderInterceptor } from './common/interceptors/request-header.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { DoctorModule } from './doctor/doctor.module';
+import { SignupController } from './signup/signup.controller';
+import { SignupService } from './signup/signup.service';
+import { SignupModule } from './signup/signup.module';
 
 @Module({
   imports: [
@@ -14,9 +17,10 @@ import { DoctorModule } from './doctor/doctor.module';
     ConfigModule.forRoot({
       isGlobal: true, // Make it global so you can access it in any module
     }),  
-    DoctorModule,
+    DoctorModule, 
+    SignupModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, SignupController],
   providers: [
     AppService,
     {
@@ -26,7 +30,8 @@ import { DoctorModule } from './doctor/doctor.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestHeaderInterceptor
-    }
+    },
+    SignupService
   ],
 })
 export class AppModule {}
