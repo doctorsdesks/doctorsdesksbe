@@ -11,22 +11,25 @@ export class Doctor extends Document {
   phone: string;
 
   @Prop({ type: String, required: true })
+  email: string;
+
+  @Prop({ type: String, required: true })
   name: string;
 
   @Prop({ type: String, enum: Object.values(Gender), required: true })
   gender: string;
 
-  @Prop({ default: "", type: String })
-  email: string;
+  @Prop({ type: String, required: true })
+  specialization: Specialization;
+
+  @Prop({ type: String, required: true  })
+  qualification: string;
 
   @Prop({ type: String, required: true })
   pincode: string;
 
   @Prop({ type: [String], required: true })
   languages: string[];
-
-  @Prop({ type: String, default: Specialization.GENERAL })
-  specialization: Specialization;
 
   @Prop({ type: String, required: true })
   registrationNumber: string;

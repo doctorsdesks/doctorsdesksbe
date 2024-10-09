@@ -29,12 +29,12 @@ export class SignupService {
 
         // add new Qualification document of that docId
 
-        return newDoctor.name;
+        return `${newDoctor.name}, your doctor account has been created successfully.`;
     }
 
     async createDoctor(signupDoctorInfo: SignupDoctorDto): Promise<Doctor> {
         const gender = Gender[signupDoctorInfo.gender];
-        const specialization = signupDoctorInfo.qualifications && signupDoctorInfo.qualifications[1] && signupDoctorInfo.qualifications[1]?.specialization && Specialization[signupDoctorInfo.qualifications[1].specialization] || Specialization.GENERAL;
+        const specialization = Specialization[signupDoctorInfo.specialization];
         const pincode = signupDoctorInfo?.clinicAddress?.address?.pincode;
 
         const doctorId = this.createDoctorId(signupDoctorInfo.phone);
@@ -42,12 +42,13 @@ export class SignupService {
         const createdDoctorDto = new CreateDoctorDto(
             doctorId,
             signupDoctorInfo.phone,
+            signupDoctorInfo.email,
             signupDoctorInfo.name,
             gender,
-            signupDoctorInfo.email,
+            signupDoctorInfo.specialization,
+            signupDoctorInfo.qualification,
             pincode,
             signupDoctorInfo.languages,
-            specialization,
             signupDoctorInfo.registrationNumber,
         );
 

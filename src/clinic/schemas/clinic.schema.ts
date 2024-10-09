@@ -6,7 +6,7 @@ import { EachDayInfo } from 'src/common/models/eachDayInfo.model';
 @Schema({ timestamps: true })
 export class Clinic extends Document {
     @Prop({ type: String, required: true })
-    docId: string;
+    doctorId: string;
 
     @Prop({ type: ClinicAddress, required: true })
     clinicAddress: ClinicAddress;

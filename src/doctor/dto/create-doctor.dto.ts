@@ -10,6 +10,10 @@ export class CreateDoctorDto {
     @IsNotEmpty()
     readonly phone: string;
 
+    @IsEmail()
+    @IsNotEmpty()
+    readonly email: string;
+
     @IsString()
     @IsNotEmpty()
     readonly name: string;
@@ -18,8 +22,13 @@ export class CreateDoctorDto {
     @IsNotEmpty()
     readonly gender: Gender;
 
-    @IsEmail()
-    readonly email: string;
+    @IsString()
+    @IsNotEmpty()
+    readonly specialization: Specialization;
+
+    @IsString()
+    @IsNotEmpty()
+    readonly qualification: string;
 
     @IsString()
     @IsNotEmpty()
@@ -31,31 +40,29 @@ export class CreateDoctorDto {
 
     @IsString()
     @IsNotEmpty()
-    readonly specialization: Specialization;
-
-    @IsString()
-    @IsNotEmpty()
     readonly registrationNumber: string;
 
     constructor(
         doctorId: string,
         phone: string,
+        email: string,
         name: string,
         gender: Gender,
-        email: string,
+        specialization: Specialization,
+        qualification: string,
         pincode: string,
         languages: string[],
-        specialization: Specialization,
         registrationNumber: string,
     ){
         this.doctorId = doctorId;
         this.phone = phone;
+        this.email = email;
         this.name = name;
         this.gender = gender;
-        this.email = email || "";
+        this.specialization = specialization;
+        this.qualification = qualification;
         this.pincode = pincode;
         this.languages = languages;
-        this.specialization = specialization;
         this.registrationNumber = registrationNumber;
     }
 }
