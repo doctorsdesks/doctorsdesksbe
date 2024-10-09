@@ -7,19 +7,12 @@ import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { Gender, Specialization } from 'src/common/enums';
 
 @Injectable()
-export class DoctorsService {
+export class DoctorService {
   constructor(@InjectModel(Doctor.name) private doctorModel: Model<Doctor>) {}
 
-  async create(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
-    const doctorDetails = {
-      ...createDoctorDto,
-      gender: Gender[createDoctorDto.gender],
-      pincode: createDoctorDto.clinicAddress?.address?.pincode,
-      Specialization: createDoctorDto.qualifications[1]?.specialization, 
-    }
-    console.info("doctorCreatedObject Created :", doctorDetails);
-    const createdDoctor = new this.doctorModel(doctorDetails);
-    console.info("doctorCreated :", createdDoctor);
+  async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
+    console.info("Signup Doctor - doctor service - create doctor called with: ", createDoctorDto);
+    const createdDoctor = new this.doctorModel(createDoctorDto);
     return createdDoctor.save();
   }
 
