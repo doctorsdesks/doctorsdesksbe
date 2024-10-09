@@ -5,6 +5,9 @@ import { Gender, Specialization, UserStatus } from 'src/common/enums';
 @Schema({ timestamps: true }) // Enable timestamps
 export class Doctor extends Document {
   @Prop({ type: String, required: true, unique: true, index: true })
+  doctorId: string;
+
+  @Prop({ type: String, required: true })
   phone: string;
 
   @Prop({ type: String, required: true })
@@ -22,7 +25,7 @@ export class Doctor extends Document {
   @Prop({ type: [String], required: true })
   languages: string[];
 
-  @Prop({ type: String })
+  @Prop({ type: String, default: Specialization.GENERAL })
   specialization: Specialization;
 
   @Prop({ type: String, required: true })
