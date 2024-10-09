@@ -7,17 +7,9 @@ export class UpdateClinicDto {
     @IsNotEmpty()
     readonly docId: string;
 
-    @IsString()
+    @IsObject()
     @IsNotEmpty()
-    readonly clinicName: string;
-
-    @IsNumber()
-    @IsNotEmpty()
-    @Min(5)
-    readonly slotDuration: number;
-
-    @IsString()
-    readonly clinicPhone: string;
+    readonly clinicAddress: Address;
 
     @IsNumber()
     @IsNotEmpty()
@@ -34,9 +26,10 @@ export class UpdateClinicDto {
     @Min(0)
     readonly followupDays: number;
 
-    @IsObject()
+    @IsNumber()
     @IsNotEmpty()
-    readonly clinicAddress: Address;
+    @Min(5)
+    readonly slotDuration: number;
 
     @IsArray()
     @ArrayNotEmpty()

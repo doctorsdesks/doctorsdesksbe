@@ -12,7 +12,7 @@ export class SignupController {
     @Post("/doctor")
     doctorSignup(@Body() signupDoctorDto: SignupDoctorDto){
         console.log("Signup Doctor - start with signUpInfo: ", signupDoctorDto);
-        return this.signupSevice.createDoctor(signupDoctorDto);
+        return this.signupSevice.signupDoctor(signupDoctorDto);
     };
 }
 

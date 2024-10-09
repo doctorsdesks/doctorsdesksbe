@@ -1,5 +1,5 @@
-import { ArrayNotEmpty, IsArray, IsNotEmpty, IsNumber, IsObject, IsString, Min } from "class-validator";
-import { Address } from "src/common/models/address.model";
+import { IsArray, IsNotEmpty, IsNumber, IsObject, IsString, Min } from "class-validator";
+import { ClinicAddress } from "src/common/models/clinicAddress.model";
 import { EachDayInfo } from "src/common/models/eachDayInfo.model";
 
 export class CreateClinicDto {
@@ -7,39 +7,41 @@ export class CreateClinicDto {
     @IsNotEmpty()
     readonly docId: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly clinicName: string;
-
-    @IsNumber()
-    @IsNotEmpty()
-    @Min(5)
-    readonly slotDuration: number;
-
-    @IsString()
-    readonly clinicPhone: string;
-
-    @IsNumber()
-    @IsNotEmpty()
-    @Min(0)
-    readonly appointmentFee: number;
-
-    @IsNumber()
-    @IsNotEmpty()
-    @Min(0)
-    readonly followupFee: number;
-
-    @IsNumber()
-    @IsNotEmpty()
-    @Min(0)
-    readonly followupDays: number;
-
     @IsObject()
     @IsNotEmpty()
-    readonly clinicAddress: Address;
+    readonly clinicAddress: ClinicAddress;
+
+    @IsNumber()
+    appointmentFee: number;
+
+    @IsNumber()
+    followupFee: number;
+
+    @IsNumber()
+    followupDays: number;
+
+    @IsNumber()
+    slotDuration: number;
 
     @IsArray()
-    @ArrayNotEmpty()
     clinicTimings: EachDayInfo[];
+
+    constructor(
+        docId: string,  
+        clinicAddress: ClinicAddress,
+        appointmentFee?: number,
+        followupFee?: number,
+        followupDays?: number,
+        slotDuration?: number,
+        clinicTimings?: EachDayInfo[]
+    ){
+        this.docId = docId;
+        this.clinicAddress = clinicAddress;
+        this.appointmentFee = appointmentFee || 0;
+        this.followupFee = followupFee || 0;
+        this.followupDays = followupDays || 0;
+        this.slotDuration = slotDuration || 5;
+        this.clinicTimings = clinicTimings || [];
+    }
 
 }

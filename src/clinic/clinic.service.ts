@@ -10,15 +10,15 @@ export class ClinicService {
     constructor(@InjectModel(Clinic.name) private clinicModel: Model<Clinic>) {}
 
     async createClinic(createClinicDto: CreateClinicDto): Promise<Clinic> {
-        const createdClinic = new this.clinicModel(createClinicDto);
-
-        return createdClinic.save();
+        const createdClinicSchema = new this.clinicModel(createClinicDto);
+        const createdClinic = await createdClinicSchema.save();
+        return createdClinic;
     }
 
     async updateClinic(clinicId: string, updateClinicDto: UpdateClinicDto): Promise<string> {
         // validations
         const updatedClinic = await this.clinicModel.findByIdAndDelete(clinicId, updateClinicDto ).exec();
-        return `${updatedClinic.clinicName} has been updated successfully.`;
+        return `${updatedClinic.clinicAddress.clinicName} has been updated successfully.`;
 
     }
 
