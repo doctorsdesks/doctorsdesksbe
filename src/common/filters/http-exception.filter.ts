@@ -7,6 +7,8 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiResponse } from '../dto/api-response.dto';
+import { MongoError } from 'mongodb';
+import { timestamp } from 'rxjs';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -14,21 +16,26 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
         const request = ctx.getRequest<Request>();
-        const status = exception.getStatus();
+        let statusCode = exception.getStatus();
         const exceptionResponse = exception.getResponse();
 
-        let message = "An error occured";
+        let message = "An error occurred";
 
-        if(typeof exceptionResponse === 'string'){
-            message = exceptionResponse;
-        } else if(typeof exceptionResponse === 'object' && exceptionResponse['message']){
-            message = exceptionResponse['message'];
+        let status = "FAILURE";
+
+        if (typeof exceptionResponse === 'string') {
+            message = exceptionResponse;  // Catch string messages
+        } else if (typeof exceptionResponse === 'object' && exceptionResponse['message']) {
+            message = exceptionResponse['message'];  // Catch custom message from service
         }
 
-        response.status(status).json({
-            statusCode: status,
+        response.status(statusCode).json({
+            statusCode: statusCode,
+            status: status,
             message,
             data: null,
+            timestamp: new Date().toISOString(),
+            path: request.url
         });
     }
 }

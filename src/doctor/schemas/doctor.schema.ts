@@ -16,7 +16,7 @@ export class Doctor extends Document {
   @Prop({ type: String, enum: Object.values(Gender), required: true })
   gender: string;
 
-  @Prop({ unique: true, default: "", type: String })
+  @Prop({ default: "", type: String })
   email: string;
 
   @Prop({ type: String, required: true })
