@@ -5,7 +5,7 @@ import { EachDayInfo } from "src/common/models/eachDayInfo.model";
 export class CreateClinicDto {
     @IsString()
     @IsNotEmpty()
-    readonly docId: string;
+    readonly doctorId: string;
 
     @IsObject()
     @IsNotEmpty()
@@ -27,7 +27,7 @@ export class CreateClinicDto {
     clinicTimings: EachDayInfo[];
 
     constructor(
-        docId: string,  
+        doctorId: string,  
         clinicAddress: ClinicAddress,
         appointmentFee?: number,
         followupFee?: number,
@@ -35,7 +35,7 @@ export class CreateClinicDto {
         slotDuration?: number,
         clinicTimings?: EachDayInfo[]
     ){
-        this.docId = docId;
+        this.doctorId = doctorId;
         this.clinicAddress = clinicAddress;
         this.appointmentFee = appointmentFee || 0;
         this.followupFee = followupFee || 0;

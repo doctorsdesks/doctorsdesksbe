@@ -17,7 +17,7 @@ export class ClinicService {
 
     async updateClinic(clinicId: string, updateClinicDto: UpdateClinicDto): Promise<string> {
         // validations
-        const updatedClinic = await this.clinicModel.findByIdAndDelete(clinicId, updateClinicDto ).exec();
+        const updatedClinic = await this.clinicModel.findByIdAndUpdate(clinicId, updateClinicDto ).exec();
         return `${updatedClinic.clinicAddress.clinicName} has been updated successfully.`;
 
     }

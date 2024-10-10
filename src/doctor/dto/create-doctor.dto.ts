@@ -1,10 +1,18 @@
 import { IsString, IsNotEmpty, IsArray, ArrayNotEmpty, IsEmail } from 'class-validator';
-import { Gender } from 'src/common/enums';
+import { Gender, Specialization } from 'src/common/enums';
 
 export class CreateDoctorDto {
     @IsString()
     @IsNotEmpty()
+    readonly doctorId: string;
+
+    @IsString()
+    @IsNotEmpty()
     readonly phone: string;
+
+    @IsEmail()
+    @IsNotEmpty()
+    readonly email: string;
 
     @IsString()
     @IsNotEmpty()
@@ -14,8 +22,13 @@ export class CreateDoctorDto {
     @IsNotEmpty()
     readonly gender: Gender;
 
-    @IsEmail()
-    readonly email: string;
+    @IsString()
+    @IsNotEmpty()
+    readonly specialization: Specialization;
+
+    @IsString()
+    @IsNotEmpty()
+    readonly qualification: string;
 
     @IsString()
     @IsNotEmpty()
@@ -27,29 +40,29 @@ export class CreateDoctorDto {
 
     @IsString()
     @IsNotEmpty()
-    readonly specialization: string;
-
-    @IsString()
-    @IsNotEmpty()
     readonly registrationNumber: string;
 
     constructor(
+        doctorId: string,
         phone: string,
+        email: string,
         name: string,
         gender: Gender,
-        email: string,
+        specialization: Specialization,
+        qualification: string,
         pincode: string,
         languages: string[],
-        specialization: string,
         registrationNumber: string,
     ){
+        this.doctorId = doctorId;
         this.phone = phone;
+        this.email = email;
         this.name = name;
         this.gender = gender;
-        this.email = email || "";
+        this.specialization = specialization;
+        this.qualification = qualification;
         this.pincode = pincode;
         this.languages = languages;
-        this.specialization = specialization;
         this.registrationNumber = registrationNumber;
     }
 }

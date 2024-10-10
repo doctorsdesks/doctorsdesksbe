@@ -17,7 +17,8 @@ export enum QualificationType {
 
 export enum Specialization {
     DERMA = "Dermatology",
-    HEART = "Heart"
+    HEART = "Heart",
+    GENERAL = "General"
 }
 
 export enum Day {

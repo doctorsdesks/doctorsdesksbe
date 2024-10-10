@@ -1,12 +1,15 @@
 import { IsString, IsNotEmpty, IsArray, ArrayNotEmpty, IsEmail, IsObject } from 'class-validator';
-import { Gender } from 'src/common/enums';
+import { Gender, Specialization } from 'src/common/enums';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
-import { Qualification } from 'src/doctor/schemas/qualification.schema';
 
 export class SignupDoctorDto {
     @IsString()
     @IsNotEmpty()
     readonly phone: string;
+
+    @IsEmail()
+    @IsNotEmpty()
+    readonly email: string;
 
     @IsString()
     @IsNotEmpty()
@@ -20,8 +23,13 @@ export class SignupDoctorDto {
     @IsNotEmpty()
     readonly gender: Gender;
 
-    @IsEmail()
-    readonly email: string;
+    @IsString()
+    @IsNotEmpty()
+    readonly specialization: Specialization;
+
+    @IsString()
+    @IsNotEmpty()
+    readonly qualification: string;
 
     @IsArray()
     @ArrayNotEmpty()
@@ -34,8 +42,4 @@ export class SignupDoctorDto {
     @IsObject()
     @IsNotEmpty()
     readonly clinicAddress: ClinicAddress;
-
-    @IsArray()
-    @ArrayNotEmpty()
-    readonly qualifications: Qualification[];
 }
