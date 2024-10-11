@@ -34,10 +34,6 @@ import { HealthService } from './health/health.service';
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor
     },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: RequestHeaderInterceptor
-    },
     SignupService,
     HealthService
   ],

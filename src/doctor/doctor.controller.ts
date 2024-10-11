@@ -8,12 +8,15 @@ import {
     UseFilters,
     HttpException,
     InternalServerErrorException,
+    UseInterceptors,
   } from '@nestjs/common';  
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { DoctorService } from './doctor.service';
+import { RequestHeaderInterceptor } from 'src/common/interceptors/request-header.interceptor';
   
   @Controller('/v1/doctor')
+  @UseInterceptors(RequestHeaderInterceptor)
   @UseFilters(HttpExceptionFilter)
   export class DoctorController {
     constructor(private readonly doctorService: DoctorService) {}
