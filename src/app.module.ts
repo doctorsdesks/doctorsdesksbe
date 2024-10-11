@@ -14,6 +14,7 @@ import { ClinicController } from './clinic/clinic.controller';
 import { ClinicModule } from './clinic/clinic.module';
 import { HealthModule } from './health/health.module';
 import { HealthController } from './health/health.controller';
+import { HealthService } from './health/health.service';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { HealthController } from './health/health.controller';
       useClass: RequestHeaderInterceptor
     },
     SignupService,
+    HealthService
   ],
 })
 export class AppModule {}
