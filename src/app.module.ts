@@ -12,6 +12,8 @@ import { SignupService } from './signup/signup.service';
 import { SignupModule } from './signup/signup.module';
 import { ClinicController } from './clinic/clinic.controller';
 import { ClinicModule } from './clinic/clinic.module';
+import { HealthModule } from './health/health.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -22,8 +24,9 @@ import { ClinicModule } from './clinic/clinic.module';
     DoctorModule, 
     SignupModule, 
     ClinicModule,
+    HealthModule,
   ],
-  controllers: [AppController, SignupController, ClinicController],
+  controllers: [AppController, SignupController, ClinicController, HealthController],
   providers: [
     AppService,
     {

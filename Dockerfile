@@ -1,18 +1,23 @@
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
-# Use a smaller base image for the final stage
+# Dockerfile
 FROM node:18-alpine
 
+# Set the working directory in the container
 WORKDIR /app
-COPY --from=builder /app/dist /app/build
+
+# Copy package.json and package-lock.json
 COPY package*.json ./
-RUN npm install --only=production
-RUN npm install -g serve
+
+# Install dependencies
+RUN npm install --production
+
+# Copy the rest of your app's source code
+COPY . .
+
+# Build the NestJS app
+RUN npm run build
+
+# Expose the port your app runs on
 EXPOSE 3000
-CMD ["serve", "-s", "build", "-l", "3000"]
+
+# Command to start the app
+CMD ["npm", "run", "start:prod"]
