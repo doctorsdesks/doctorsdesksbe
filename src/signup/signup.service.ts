@@ -1,74 +1,75 @@
 import { Injectable } from '@nestjs/common';
 import { SignupDoctorDto } from './dto/signup-doctor.dto';
 import { CreateDoctorDto } from 'src/doctor/dto/create-doctor.dto';
-import { Gender, Specialization } from 'src/common/enums';
+import { Gender, Specialisation } from 'src/common/enums';
 import { DoctorService } from 'src/doctor/doctor.service';
 import { Doctor } from 'src/doctor/schemas/doctor.schema';
 import { CreateClinicDto } from 'src/clinic/dto/create-clinic.dto';
 import { ClinicService } from 'src/clinic/clinic.service';
+import { Clinic } from 'src/clinic/schemas/clinic.schema';
 
 @Injectable()
 export class SignupService {
-    constructor(
-        private readonly doctorService: DoctorService,
-        private readonly clinicService: ClinicService
-    ){}
+  constructor(
+    private readonly doctorService: DoctorService,
+    private readonly clinicService: ClinicService,
+  ) {}
 
-    async signupDoctor(signupDoctorDto: SignupDoctorDto): Promise<string> {
-        // validate otp
+  async signupDoctor(signupDoctorDto: SignupDoctorDto): Promise<string> {
+    // add new Doctor document
+    const newDoctor = await this.createDoctor(signupDoctorDto);
 
-        // add new Doctor document
-        const newDoctor = await this.createDoctor(signupDoctorDto);
+    const doctorId = newDoctor.phone;
+    console.info('doctorId for signup: ', doctorId);
 
-        const doctorId = newDoctor.doctorId;
-        console.info("doctorId for signup: ", doctorId);
+    // add new Clinic document of that docId
+    const newClinic = await this.createClinic(signupDoctorDto, doctorId);
 
-        // add new Clinic document of that docId
-        this.createClinic(signupDoctorDto, doctorId);
+    return `${newDoctor.name}, your doctor account has been created successfully with clinic ${newClinic.clinicAddress.clinicName}`;
+  }
 
+  async createDoctor(signupDoctorInfo: SignupDoctorDto): Promise<Doctor> {
+    const gender = Gender[signupDoctorInfo.gender];
+    const specialisation = Specialisation[signupDoctorInfo.specialisation];
+    const pincode = signupDoctorInfo?.clinicAddress?.address?.pincode;
 
-        // add new Qualification document of that docId
+    const createdDoctorDto = new CreateDoctorDto(
+      signupDoctorInfo.phone,
+      signupDoctorInfo.imageUrl,
+      signupDoctorInfo.name,
+      gender,
+      signupDoctorInfo.email,
+      signupDoctorInfo.experience,
+      specialisation,
+      signupDoctorInfo.qualification,
+      signupDoctorInfo.languages,
+      pincode,
+      signupDoctorInfo.registrationInfo,
+      signupDoctorInfo.panInfo,
+      signupDoctorInfo.aadharInfo,
+    );
 
-        return `${newDoctor.name}, your doctor account has been created successfully.`;
-    }
+    const createdDoctor =
+      await this.doctorService.createDoctor(createdDoctorDto);
+    console.info(
+      'Signup Doctor - signup Service - created doctor :',
+      createdDoctor,
+    );
+    return createdDoctor;
+  }
 
-    async createDoctor(signupDoctorInfo: SignupDoctorDto): Promise<Doctor> {
-        const gender = Gender[signupDoctorInfo.gender];
-        const specialization = Specialization[signupDoctorInfo.specialization];
-        const pincode = signupDoctorInfo?.clinicAddress?.address?.pincode;
-
-        const doctorId = this.createDoctorId(signupDoctorInfo.phone);
-
-        const createdDoctorDto = new CreateDoctorDto(
-            doctorId,
-            signupDoctorInfo.phone,
-            signupDoctorInfo.email,
-            signupDoctorInfo.name,
-            gender,
-            signupDoctorInfo.specialization,
-            signupDoctorInfo.qualification,
-            pincode,
-            signupDoctorInfo.languages,
-            signupDoctorInfo.registrationNumber,
-        );
-
-        const createdDoctor = await this.doctorService.createDoctor(createdDoctorDto);
-        console.info("Signup Doctor - signup Service - created doctor :", createdDoctor);
-        return createdDoctor;
-    }
-
-    createDoctorId(phone: string): string {
-        const doctorId = `Dr-${phone}`;
-        return doctorId;
-    }
-
-    async createClinic(signupDoctorInfo: SignupDoctorDto, docId: string) {
-        const createdClinicDto = new CreateClinicDto(
-            docId,
-            signupDoctorInfo.clinicAddress,
-        )
-        console.info("createClinitDto :: ", createdClinicDto);
-        const createdClinic = await this.clinicService.createClinic(createdClinicDto);
-        console.info("Signup Doctor - clinic created : ", createdClinic);
-    }
+  async createClinic(
+    signupDoctorInfo: SignupDoctorDto,
+    docId: string,
+  ): Promise<Clinic> {
+    const createdClinicDto = new CreateClinicDto(
+      docId,
+      signupDoctorInfo.clinicAddress,
+    );
+    console.info('createClinitDto :: ', createdClinicDto);
+    const createdClinic =
+      await this.clinicService.createClinic(createdClinicDto);
+    console.info('Signup Doctor - clinic created : ', createdClinic);
+    return createdClinic;
+  }
 }

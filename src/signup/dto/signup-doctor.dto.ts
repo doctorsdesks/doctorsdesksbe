@@ -1,45 +1,61 @@
-import { IsString, IsNotEmpty, IsArray, ArrayNotEmpty, IsEmail, IsObject } from 'class-validator';
-import { Gender, Specialization } from 'src/common/enums';
+import {
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  ArrayNotEmpty,
+  IsEmail,
+  IsObject,
+} from 'class-validator';
+import { Gender, Specialisation } from 'src/common/enums';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
+import { IdInfo } from 'src/common/models/idInfo.model';
 
 export class SignupDoctorDto {
-    @IsString()
-    @IsNotEmpty()
-    readonly phone: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly phone: string;
 
-    @IsEmail()
-    @IsNotEmpty()
-    readonly email: string;
+  @IsString()
+  readonly imageUrl: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly otp: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly name: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly name: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly gender: Gender;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly gender: Gender;
+  @IsEmail()
+  readonly email: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly specialization: Specialization;
+  @IsString()
+  @IsNotEmpty()
+  readonly experience: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly qualification: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly specialisation: Specialisation;
 
-    @IsArray()
-    @ArrayNotEmpty()
-    readonly languages: string[];
+  @IsString()
+  @IsNotEmpty()
+  readonly qualification: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly registrationNumber: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  readonly languages: string[];
 
-    @IsObject()
-    @IsNotEmpty()
-    readonly clinicAddress: ClinicAddress;
+  @IsObject()
+  @IsNotEmpty()
+  readonly clinicAddress: ClinicAddress;
+
+  @IsObject()
+  @IsNotEmpty()
+  readonly registrationInfo: IdInfo;
+
+  @IsObject()
+  readonly panInfo: IdInfo;
+
+  @IsObject()
+  readonly aadharInfo: IdInfo;
 }
