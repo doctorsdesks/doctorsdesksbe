@@ -1,68 +1,90 @@
-import { IsString, IsNotEmpty, IsArray, ArrayNotEmpty, IsEmail } from 'class-validator';
-import { Gender, Specialization } from 'src/common/enums';
+import {
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  ArrayNotEmpty,
+  IsEmail,
+  IsObject,
+} from 'class-validator';
+import { Gender, Specialisation } from 'src/common/enums';
+import { IdInfo } from 'src/common/models/idInfo.model';
 
 export class CreateDoctorDto {
-    @IsString()
-    @IsNotEmpty()
-    readonly doctorId: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly phone: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly phone: string;
+  @IsString()
+  readonly imageUrl: string;
 
-    @IsEmail()
-    @IsNotEmpty()
-    readonly email: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly name: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly name: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly gender: Gender;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly gender: Gender;
+  @IsEmail()
+  readonly email: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly specialization: Specialization;
+  @IsString()
+  @IsNotEmpty()
+  readonly experience: string;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly qualification: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly specialisation: Specialisation;
 
-    @IsString()
-    @IsNotEmpty()
-    readonly pincode: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly qualification: string;
 
-    @IsArray()
-    @ArrayNotEmpty()
-    readonly languages: string[];
+  @IsArray()
+  @ArrayNotEmpty()
+  readonly languages: string[];
 
-    @IsString()
-    @IsNotEmpty()
-    readonly registrationNumber: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly pincode: string;
 
-    constructor(
-        doctorId: string,
-        phone: string,
-        email: string,
-        name: string,
-        gender: Gender,
-        specialization: Specialization,
-        qualification: string,
-        pincode: string,
-        languages: string[],
-        registrationNumber: string,
-    ){
-        this.doctorId = doctorId;
-        this.phone = phone;
-        this.email = email;
-        this.name = name;
-        this.gender = gender;
-        this.specialization = specialization;
-        this.qualification = qualification;
-        this.pincode = pincode;
-        this.languages = languages;
-        this.registrationNumber = registrationNumber;
-    }
+  @IsObject()
+  @IsNotEmpty()
+  readonly registrationInfo: IdInfo;
+
+  @IsObject()
+  readonly panInfo: IdInfo;
+
+  @IsObject()
+  readonly aadharInfo: IdInfo;
+
+  constructor(
+    phone: string,
+    imageUrl: string,
+    name: string,
+    gender: Gender,
+    email: string,
+    experience: string,
+    specialisation: Specialisation,
+    qualification: string,
+    languages: string[],
+    pincode: string,
+    registrationInfo: IdInfo,
+    panInfo: IdInfo,
+    aadharInfo: IdInfo,
+  ) {
+    this.phone = phone;
+    this.imageUrl = imageUrl;
+    this.name = name;
+    this.gender = gender;
+    this.email = email;
+    this.experience = experience;
+    this.specialisation = specialisation;
+    this.qualification = qualification;
+    this.languages = languages;
+    this.pincode = pincode;
+    this.registrationInfo = registrationInfo;
+    this.panInfo = panInfo;
+    this.aadharInfo = aadharInfo;
+  }
 }
