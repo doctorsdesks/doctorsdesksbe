@@ -1,33 +1,33 @@
 export enum Gender {
-  MALE = 'Male',
-  FEMALE = 'Female',
-  OTHER = 'Other',
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+  OTHER = 'OTHER',
 }
 
 export enum UserStatus {
-  NOT_VERIFIED = 'Not_Verified',
-  VERIFIED = 'Verified',
-  BLOCKED = 'Blocked',
+  NOT_VERIFIED = 'NOT_VERIFIED',
+  VERIFIED = 'VERIFIED',
+  BLOCKED = 'BLOCKED',
 }
 
 export enum Specialisation {
-  DERMA = 'Dermatology',
-  HEART = 'Heart',
-  GENERAL = 'General',
+  DERMATOLOGY = 'DERMATOLOGY',
+  HEART = 'HEART',
+  GENERAL = 'GENERAL',
 }
 
 export enum Day {
-  MONDAY = 'Monday',
-  TUESDAY = 'Tuesday',
-  WEDNESDAY = 'Wednesday',
-  THURSDAY = 'Thursday',
-  FRIDAY = 'Friday',
-  SATURDAY = 'Saturday',
-  SUNDAY = 'Sunday',
+  MONDAY = 'MONDAY',
+  TUESDAY = 'TUESDAY',
+  WEDNESDAY = 'WEDNESDAY',
+  THURSDAY = 'THURSDAY',
+  FRIDAY = 'FRIDAY',
+  SATURDAY = 'SATURDAY',
+  SUNDAY = 'SUNDAY',
 }
 
 export enum SlotStatus {
-  OPEN = 'Open',
-  BOOKED = 'Booked',
-  LOCKED = 'Locked',
+  OPEN = 'OPEN',
+  BOOKED = 'BOOKED',
+  LOCKED = 'LOCKED',
 }

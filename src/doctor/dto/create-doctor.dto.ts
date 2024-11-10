@@ -6,7 +6,7 @@ import {
   IsEmail,
   IsObject,
 } from 'class-validator';
-import { Gender, Specialisation } from 'src/common/enums';
+import { Gender } from 'src/common/enums';
 import { IdInfo } from 'src/common/models/idInfo.model';
 
 export class CreateDoctorDto {
@@ -34,11 +34,10 @@ export class CreateDoctorDto {
 
   @IsString()
   @IsNotEmpty()
-  readonly specialisation: Specialisation;
+  readonly specialisation: string;
 
   @IsString()
-  @IsNotEmpty()
-  readonly qualification: string;
+  readonly otherQualification: string;
 
   @IsArray()
   @ArrayNotEmpty()
@@ -65,8 +64,8 @@ export class CreateDoctorDto {
     gender: Gender,
     email: string,
     experience: string,
-    specialisation: Specialisation,
-    qualification: string,
+    specialisation: string,
+    otherQualification: string,
     languages: string[],
     pincode: string,
     registrationInfo: IdInfo,
@@ -80,7 +79,7 @@ export class CreateDoctorDto {
     this.email = email;
     this.experience = experience;
     this.specialisation = specialisation;
-    this.qualification = qualification;
+    this.otherQualification = otherQualification || '';
     this.languages = languages;
     this.pincode = pincode;
     this.registrationInfo = registrationInfo;

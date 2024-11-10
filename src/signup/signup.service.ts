@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SignupDoctorDto } from './dto/signup-doctor.dto';
 import { CreateDoctorDto } from 'src/doctor/dto/create-doctor.dto';
-import { Gender, Specialisation } from 'src/common/enums';
+import { Gender } from 'src/common/enums';
 import { DoctorService } from 'src/doctor/doctor.service';
 import { Doctor } from 'src/doctor/schemas/doctor.schema';
 import { CreateClinicDto } from 'src/clinic/dto/create-clinic.dto';
@@ -15,7 +15,7 @@ export class SignupService {
     private readonly clinicService: ClinicService,
   ) {}
 
-  async signupDoctor(signupDoctorDto: SignupDoctorDto): Promise<string> {
+  async signupDoctor(signupDoctorDto: SignupDoctorDto): Promise<Doctor> {
     // add new Doctor document
     const newDoctor = await this.createDoctor(signupDoctorDto);
 
@@ -24,13 +24,17 @@ export class SignupService {
 
     // add new Clinic document of that docId
     const newClinic = await this.createClinic(signupDoctorDto, doctorId);
+    console.info(
+      `${newDoctor.name}, your doctor account has been created successfully with clinic ${newClinic.clinicAddress.clinicName}`,
+    );
 
-    return `${newDoctor.name}, your doctor account has been created successfully with clinic ${newClinic.clinicAddress.clinicName}`;
+    return newDoctor;
+
+    // return `${newDoctor.name}, your doctor account has been created successfully with clinic ${newClinic.clinicAddress.clinicName}`;
   }
 
   async createDoctor(signupDoctorInfo: SignupDoctorDto): Promise<Doctor> {
     const gender = Gender[signupDoctorInfo.gender];
-    const specialisation = Specialisation[signupDoctorInfo.specialisation];
     const pincode = signupDoctorInfo?.clinicAddress?.address?.pincode;
 
     const createdDoctorDto = new CreateDoctorDto(
@@ -40,8 +44,8 @@ export class SignupService {
       gender,
       signupDoctorInfo.email,
       signupDoctorInfo.experience,
-      specialisation,
-      signupDoctorInfo.qualification,
+      signupDoctorInfo.specialisation,
+      signupDoctorInfo.otherQualification,
       signupDoctorInfo.languages,
       pincode,
       signupDoctorInfo.registrationInfo,

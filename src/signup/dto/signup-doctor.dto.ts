@@ -6,7 +6,7 @@ import {
   IsEmail,
   IsObject,
 } from 'class-validator';
-import { Gender, Specialisation } from 'src/common/enums';
+import { Gender } from 'src/common/enums';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
 import { IdInfo } from 'src/common/models/idInfo.model';
 
@@ -35,11 +35,10 @@ export class SignupDoctorDto {
 
   @IsString()
   @IsNotEmpty()
-  readonly specialisation: Specialisation;
+  readonly specialisation: string;
 
   @IsString()
-  @IsNotEmpty()
-  readonly qualification: string;
+  readonly otherQualification: string;
 
   @IsArray()
   @ArrayNotEmpty()

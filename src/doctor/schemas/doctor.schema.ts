@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Gender, Specialisation, UserStatus } from 'src/common/enums';
+import { Gender, UserStatus } from 'src/common/enums';
 import { IdInfo } from 'src/common/models/idInfo.model';
 
 @Schema({ timestamps: true }) // Enable timestamps
@@ -24,10 +24,10 @@ export class Doctor extends Document {
   experience: string;
 
   @Prop({ type: String, required: true })
-  specialisation: Specialisation;
+  specialisation: string;
 
-  @Prop({ type: String, required: true })
-  qualification: string;
+  @Prop({ type: String, default: '' })
+  otherQualification: string;
 
   @Prop({ type: [String], required: true })
   languages: string[];
