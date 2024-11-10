@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Doctor } from './schemas/doctor.schema';
@@ -26,7 +31,7 @@ export class DoctorService {
           `Account is already exist with ${createDoctorDto.phone}`,
         );
       }
-      throw error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
