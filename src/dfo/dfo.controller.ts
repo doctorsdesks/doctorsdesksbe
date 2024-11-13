@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -19,7 +20,7 @@ import { CreateDfoDto } from './dto/create-dfo.dto';
 export class DfoController {
   constructor(private readonly dfoService: DfoService) {}
 
-  @Get(':doctorId')
+  @Get('/:doctorId')
   async getDfo(
     @Param('doctorId') doctorId: string,
   ): Promise<CreateDfoDto | null> {
@@ -28,7 +29,14 @@ export class DfoController {
 
   @Post('/add/:doctorId')
   addDfo(@Body() updateDfo: UpdateDfoDto, @Param('doctorId') doctorId: string) {
-    console.log('add dfo called', doctorId, updateDfo);
     return this.dfoService.addDfo(doctorId, updateDfo);
+  }
+
+  @Delete('/:doctorId/:dfoKey')
+  deleteDfo(
+    @Param('doctorId') doctorId: string,
+    @Param('dfoKey') dfoKey: string,
+  ) {
+    return this.dfoService.deleteDfo(doctorId, dfoKey);
   }
 }

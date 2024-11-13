@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateClinicDto } from './dto/create-clinic.dto';
 import { UpdateClinicDto } from './dto/update-clinic.dto';
+import { ClinicAddress } from 'src/common/models/clinicAddress.model';
 
 @Injectable()
 export class ClinicService {
@@ -83,7 +84,11 @@ export class ClinicService {
     try {
       // update address if it is coming
       if (updateClinicData?.addressPayload) {
-        const validateErrors = updateClinicData?.addressPayload.validate();
+        const addressObject = new ClinicAddress(
+          updateClinicData?.addressPayload?.clinicName,
+          updateClinicData?.addressPayload?.address,
+        );
+        const validateErrors = addressObject.validate();
         if (validateErrors?.length > 0) {
           throw new HttpException(
             'Invalid request body',

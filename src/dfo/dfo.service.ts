@@ -12,8 +12,7 @@ export class DfoService {
   async createDfo(createDfo: CreateDfoDto) {
     try {
       const createdDfoSchema = new this.dfoModel(createDfo);
-      const createdDfo = await createdDfoSchema.save();
-      console.log('Created dfo for doctor:', createdDfo);
+      await createdDfoSchema.save();
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
@@ -30,15 +29,11 @@ export class DfoService {
         ...updateDfo,
       });
       this.createDfo(createDfoDto);
-      console.log('New dfo for new doctor:', doctorId);
       return `Updated successfully.`;
     } else {
       const newDfoObject = { ...currentDfo.dfo, ...updateDfo };
       const addDfoDto = new CreateDfoDto(doctorId, newDfoObject);
-      const updatedDfo = await this.dfoModel
-        .findOneAndUpdate({ doctorId }, addDfoDto)
-        .exec();
-      console.log('New dfo for doctor:', doctorId, updatedDfo);
+      await this.dfoModel.findOneAndUpdate({ doctorId }, addDfoDto).exec();
       return `Updated successfully.`;
     }
   }
@@ -47,12 +42,42 @@ export class DfoService {
     try {
       const dfo = await this.dfoModel.findOne({ doctorId }).exec();
       if (dfo === null) {
-        return null;
+        throw new HttpException(
+          `Dfo not found for this ${doctorId}`,
+          HttpStatus.NOT_FOUND,
+        );
       } else {
         const doctorId = dfo.doctorId;
         const dfoObject = dfo.dfo;
         const objectToReturn = new CreateDfoDto(doctorId, dfoObject);
         return objectToReturn;
+      }
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async deleteDfo(doctorId: string, dfoKey: string): Promise<string> {
+    try {
+      const currentDfo = await this.dfoModel
+        .findOne({ doctorId: doctorId })
+        .exec();
+      if (!currentDfo) {
+        throw new HttpException(
+          `Dfo not found for this ${doctorId}`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const dfo = currentDfo.dfo;
+      if (dfo[dfoKey]) {
+        delete dfo[dfoKey];
+        currentDfo.dfo = dfo;
+        currentDfo.markModified('dfo');
+        await currentDfo.save();
+        return `${dfoKey} deleted successfully`;
+      } else {
+        throw new HttpException(`${dfoKey} not present`, HttpStatus.NO_CONTENT);
       }
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
