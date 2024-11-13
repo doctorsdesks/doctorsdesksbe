@@ -20,7 +20,7 @@ export class ResponseInterceptor<T>
       map((data) => {
         return new ApiResponse({
           statusCode: context.switchToHttp().getResponse().statusCode,
-          message: 'Request successful',
+          message: data === null ? 'No record found' : 'Request successful',
           data: data,
         });
       }),

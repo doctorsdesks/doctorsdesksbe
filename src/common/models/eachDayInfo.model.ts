@@ -1,14 +1,12 @@
-import { Day } from "../enums";
-import { Slot } from "./slot.model";
+import { Day } from '../enums';
+import { Timing } from './timing.model';
 
 export class EachDayInfo {
-    day: Day;
-    isOpen: Boolean;
-    timings: Slot[];
+  day: Day;
+  timings: Timing[];
 
-    constructor(day: Day, isOpen: boolean, timings: Slot[]){
-        this.day = day;
-        this.isOpen = isOpen;
-        this.timings = timings;
-    }
+  constructor(day: Day, timings: Timing[]) {
+    this.day = day;
+    this.timings = timings;
+  }
 }

@@ -7,12 +7,16 @@ import { Doctor } from 'src/doctor/schemas/doctor.schema';
 import { CreateClinicDto } from 'src/clinic/dto/create-clinic.dto';
 import { ClinicService } from 'src/clinic/clinic.service';
 import { Clinic } from 'src/clinic/schemas/clinic.schema';
+import { DfoService } from 'src/dfo/dfo.service';
+import { CreateDfoDto } from 'src/dfo/dto/create-dfo.dto';
+import { dfoInitial } from 'src/common/constant';
 
 @Injectable()
 export class SignupService {
   constructor(
     private readonly doctorService: DoctorService,
     private readonly clinicService: ClinicService,
+    private readonly dfoService: DfoService,
   ) {}
 
   async signupDoctor(signupDoctorDto: SignupDoctorDto): Promise<Doctor> {
@@ -27,6 +31,10 @@ export class SignupService {
     console.info(
       `${newDoctor.name}, your doctor account has been created successfully with clinic ${newClinic.clinicAddress.clinicName}`,
     );
+
+    // create a dfo for this doctor with { isClinicTimingSet: false, isClinicFeeSet: false }
+    const createDfoDto = new CreateDfoDto(doctorId, dfoInitial);
+    this.dfoService.createDfo(createDfoDto);
 
     return newDoctor;
 

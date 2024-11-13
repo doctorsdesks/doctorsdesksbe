@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { RequestHeaderInterceptor } from './common/interceptors/request-header.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { DoctorModule } from './doctor/doctor.module';
 import { SignupController } from './signup/signup.controller';
@@ -15,27 +14,34 @@ import { ClinicModule } from './clinic/clinic.module';
 import { HealthModule } from './health/health.module';
 import { HealthController } from './health/health.controller';
 import { HealthService } from './health/health.service';
+import { DfoModule } from './dfo/dfo.module';
 
 @Module({
   imports: [
-    DatabaseModule, 
+    DatabaseModule,
     ConfigModule.forRoot({
       isGlobal: true, // Make it global so you can access it in any module
-    }),  
-    DoctorModule, 
-    SignupModule, 
+    }),
+    DoctorModule,
+    SignupModule,
     ClinicModule,
     HealthModule,
+    DfoModule,
   ],
-  controllers: [AppController, SignupController, ClinicController, HealthController],
+  controllers: [
+    AppController,
+    SignupController,
+    ClinicController,
+    HealthController,
+  ],
   providers: [
     AppService,
     {
       provide: APP_INTERCEPTOR,
-      useClass: ResponseInterceptor
+      useClass: ResponseInterceptor,
     },
     SignupService,
-    HealthService
+    HealthService,
   ],
 })
 export class AppModule {}

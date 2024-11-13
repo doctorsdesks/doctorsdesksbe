@@ -1,6 +1,6 @@
 export class Address {
   addressLine: string;
-  landmark: string;
+  landmark?: string;
   city: string;
   state: string;
   pincode: string;
@@ -13,7 +13,7 @@ export class Address {
     pincode: string,
   ) {
     this.addressLine = addressLine;
-    this.landmark = landmark;
+    this.landmark = landmark || '';
     this.city = city;
     this.state = state;
     this.pincode = pincode;
