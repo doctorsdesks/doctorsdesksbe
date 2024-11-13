@@ -4,16 +4,13 @@ import {
   Post,
   Body,
   Param,
-  Delete,
   UseFilters,
-  HttpException,
-  InternalServerErrorException,
   UseInterceptors,
 } from '@nestjs/common';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
-import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { DoctorService } from './doctor.service';
 import { RequestHeaderInterceptor } from 'src/common/interceptors/request-header.interceptor';
+import { UpdateDoctorDto } from './dto/update-doctor.dto';
 
 @Controller('/v1/doctor')
 @UseInterceptors(RequestHeaderInterceptor)
@@ -21,39 +18,16 @@ import { RequestHeaderInterceptor } from 'src/common/interceptors/request-header
 export class DoctorController {
   constructor(private readonly doctorService: DoctorService) {}
 
-  @Post()
-  createDoctor(@Body() createDoctorDto: CreateDoctorDto) {
-    console.info('CreateDoctor called with data:', createDoctorDto);
-    return this.doctorService.createDoctor(createDoctorDto);
+  @Post('/:doctorId')
+  updateDoctor(
+    @Body() updateDoctorDto: UpdateDoctorDto,
+    @Param('doctorId') doctorId: string,
+  ) {
+    return this.doctorService.update(doctorId, updateDoctorDto);
   }
 
-  @Get()
-  findAll() {
-    console.info('findAll called from web');
-    try {
-      const data = this.doctorService.findAll();
-      return data;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      } else {
-        throw new InternalServerErrorException('An unexpected error occured');
-      }
-    }
-  }
-
-  @Get(':id')
+  @Get('/:id')
   findByPhone(@Param('id') id: string) {
     return this.doctorService.findByPhone(id.toString());
-  }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateDoctorDto: UpdateDoctorDto) {
-  //   return this.doctorsService.update(id.toString(), updateDoctorDto);
-  // }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.doctorService.delete(id.toString());
   }
 }

@@ -2,12 +2,35 @@ import {
   IsString,
   IsNotEmpty,
   IsArray,
-  ArrayNotEmpty,
   IsEmail,
   IsObject,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+  Validate,
 } from 'class-validator';
 import { Gender } from 'src/common/enums';
 import { IdInfo } from 'src/common/models/idInfo.model';
+
+// Custom validator to enforce non-empty array with at least one non-empty string
+@ValidatorConstraint({ name: 'NonEmptyStringArray', async: false })
+class NonEmptyStringArrayConstraint implements ValidatorConstraintInterface {
+  validate(languages: any, args: ValidationArguments) {
+    console.info(args);
+    return (
+      Array.isArray(languages) &&
+      languages.length > 0 &&
+      languages.every(
+        (lang) => typeof lang === 'string' && lang.trim().length > 0,
+      )
+    );
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    console.info(args);
+    return 'Languages must be a non-empty array of non-empty strings';
+  }
+}
 
 export class CreateDoctorDto {
   @IsString()
@@ -40,7 +63,7 @@ export class CreateDoctorDto {
   readonly otherQualification: string;
 
   @IsArray()
-  @ArrayNotEmpty()
+  @Validate(NonEmptyStringArrayConstraint) // Use custom validator
   readonly languages: string[];
 
   @IsString()

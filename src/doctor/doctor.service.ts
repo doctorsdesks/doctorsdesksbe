@@ -35,26 +35,37 @@ export class DoctorService {
     }
   }
 
-  async findAll(): Promise<Doctor[]> {
-    return this.doctorModel.find().exec();
-  }
-
-  async findByPhone(id: string): Promise<Doctor> {
-    console.info('finding doctor by docID', id);
-    const doctor = await this.doctorModel.findOne({ phone: id }).exec();
+  async findByPhone(phone: string): Promise<Doctor> {
+    const doctor = await this.doctorModel.findOne({ phone }).exec();
     if (!doctor) {
-      return null;
+      throw new HttpException(
+        `No doctor is found with this ${phone}`,
+        HttpStatus.NOT_FOUND,
+      );
     }
     return doctor;
   }
 
-  async update(id: string, updateDoctorDto: UpdateDoctorDto): Promise<Doctor> {
-    return this.doctorModel
-      .findByIdAndUpdate(id, updateDoctorDto, { new: true })
-      .exec();
-  }
-
-  async delete(id: string): Promise<any> {
-    return this.doctorModel.deleteOne({ _id: id }).exec();
+  async update(
+    doctorId: string,
+    updateDoctorDto: UpdateDoctorDto,
+  ): Promise<Doctor> {
+    try {
+      const doctor = await this.doctorModel.findOne({ phone: doctorId }).exec();
+      if (!doctor) {
+        throw new HttpException(
+          `No doctor is found with this ${doctorId}`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      doctor.experience = updateDoctorDto.experience;
+      doctor.specialisation = updateDoctorDto.specialisation;
+      doctor.otherQualification = updateDoctorDto.otherQualification;
+      doctor.languages = updateDoctorDto.languages;
+      const updatedDoctor = await doctor.save();
+      return updatedDoctor;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 }

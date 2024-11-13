@@ -1,40 +1,46 @@
-import { IsString, IsArray, ArrayNotEmpty, IsBoolean, IsOptional, IsEmail } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  IsNotEmpty,
+  Validate,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator';
+
+// Custom validator to enforce non-empty array with at least one non-empty string
+@ValidatorConstraint({ name: 'NonEmptyStringArray', async: false })
+class NonEmptyStringArrayConstraint implements ValidatorConstraintInterface {
+  validate(languages: any, args: ValidationArguments) {
+    console.info(args);
+    return (
+      Array.isArray(languages) &&
+      languages.length > 0 &&
+      languages.every(
+        (lang) => typeof lang === 'string' && lang.trim().length > 0,
+      )
+    );
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    console.info(args);
+    return 'Languages must be a non-empty array of non-empty strings';
+  }
+}
 
 export class UpdateDoctorDto {
-    @IsString()
-    @IsOptional()
-    readonly firstName?: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly experience: string;
 
-    @IsString()
-    @IsOptional()
-    readonly lastName?: string;
+  @IsString()
+  @IsNotEmpty()
+  readonly specialisation: string;
 
-    @IsString()
-    @IsOptional()
-    readonly dob?: string;
+  @IsString()
+  readonly otherQualification: string;
 
-    @IsString()
-    @IsOptional()
-    readonly gender?: string;
-
-    @IsEmail()
-    @IsOptional()
-    readonly email?: string;
-
-    @IsArray()
-    @IsOptional()
-    @ArrayNotEmpty()
-    languages?: string[];
-
-    @IsString()
-    @IsOptional()
-    readonly phone?: string;
-
-    @IsBoolean()
-    @IsOptional()
-    isVerified: boolean = false; // default value as false if not provided
-
-    @IsBoolean()
-    @IsOptional()
-    isActive: boolean = false; // default value as false if not provided
+  @IsArray()
+  @Validate(NonEmptyStringArrayConstraint) // Use custom validator
+  readonly languages: string[];
 }
