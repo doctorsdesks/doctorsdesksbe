@@ -15,6 +15,13 @@ import { HealthModule } from './health/health.module';
 import { HealthController } from './health/health.controller';
 import { HealthService } from './health/health.service';
 import { DfoModule } from './dfo/dfo.module';
+import { PatientModule } from './patient/patient.module';
+import { TranslationController } from './translation/translation.controller';
+import { TranslationModule } from './translation/translation.module';
+import { AppointmentModule } from './appointment/appointment.module';
+import { DfoController } from './dfo/dfo.controller';
+import { PatientController } from './patient/patient.controller';
+import { AppointmentController } from './appointment/appointment.controller';
 
 @Module({
   imports: [
@@ -27,12 +34,19 @@ import { DfoModule } from './dfo/dfo.module';
     ClinicModule,
     HealthModule,
     DfoModule,
+    PatientModule,
+    AppointmentModule,
+    TranslationModule,
   ],
   controllers: [
     AppController,
     SignupController,
     ClinicController,
     HealthController,
+    DfoController,
+    PatientController,
+    AppointmentController,
+    TranslationController,
   ],
   providers: [
     AppService,

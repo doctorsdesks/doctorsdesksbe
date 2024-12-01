@@ -33,3 +33,31 @@ export enum SlotStatus {
   BOOKED = 'BOOKED',
   LOCKED = 'LOCKED',
 }
+
+export enum AppointmentStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum AppointmentType {
+  OPD = 'OPD',
+  EMERGENCY = 'EMERGENCY',
+}
+
+export enum OPDAppointmentType {
+  NEW = 'NEW',
+  FOLLOW_UP = 'FOLLOWUP',
+}
+
+export enum AppointmentByType {
+  DOCTOR = 'DOCTOR',
+  PATIENT = 'PATIENT',
+}
+
+export enum AppointmentUpdateType {
+  ACCEPT = 'ACCEPT',
+  COMPLETE = 'COMPLETE',
+  CANCEL = 'CANCEL',
+}
