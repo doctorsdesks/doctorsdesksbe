@@ -12,8 +12,20 @@ export class Appointment extends Document {
   @Prop({ type: String, required: true, index: true })
   doctorId: string;
 
+  @Prop({ type: String, required: false })
+  doctorImageUrl: string;
+
+  @Prop({ type: String, required: true })
+  doctorName: string;
+
   @Prop({ type: String, required: true, index: true })
   patientId: string;
+
+  @Prop({ type: String, required: false })
+  patientImageUrl: string;
+
+  @Prop({ type: String, required: true })
+  patientName: string;
 
   @Prop({ type: String, required: true })
   date: string;

@@ -62,6 +62,7 @@ export class DoctorService {
       doctor.specialisation = updateDoctorDto.specialisation;
       doctor.otherQualification = updateDoctorDto.otherQualification;
       doctor.languages = updateDoctorDto.languages;
+      doctor.imageUrl = updateDoctorDto?.imageUrl || '';
       const updatedDoctor = await doctor.save();
       return updatedDoctor;
     } catch (error) {

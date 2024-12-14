@@ -43,7 +43,6 @@ export class SignupService {
 
   async createDoctor(signupDoctorInfo: SignupDoctorDto): Promise<Doctor> {
     const gender = Gender[signupDoctorInfo.gender];
-    const pincode = signupDoctorInfo?.clinicAddress?.address?.pincode;
 
     const createdDoctorDto = new CreateDoctorDto(
       signupDoctorInfo.phone,
@@ -55,7 +54,6 @@ export class SignupService {
       signupDoctorInfo.specialisation,
       signupDoctorInfo.otherQualification,
       signupDoctorInfo.languages,
-      pincode,
       signupDoctorInfo.registrationInfo,
       signupDoctorInfo.panInfo,
       signupDoctorInfo.aadharInfo,

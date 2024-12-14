@@ -16,11 +16,15 @@ import {
   OPDAppointmentType,
 } from 'src/common/enums';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { PatientService } from 'src/patient/patient.service';
+import { DoctorService } from 'src/doctor/doctor.service';
 
 @Injectable()
 export class AppointmentService {
   constructor(
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
+    private readonly patientService: PatientService,
+    private readonly doctorService: DoctorService,
   ) {}
 
   async createAppointment(
@@ -58,6 +62,19 @@ export class AppointmentService {
           );
         }
       }
+      const patientInfo = await this.patientService.getPatientByPhone(
+        createAppointmentDto?.patientId,
+      );
+      const doctorInfo = await this.doctorService.findByPhone(
+        createAppointmentDto?.doctorId,
+      );
+      appointmentModelObject = {
+        ...appointmentModelObject,
+        patientImageUrl: patientInfo?.imageUrl,
+        patientName: patientInfo?.name,
+        doctorImageUrl: doctorInfo?.imageUrl,
+        doctorName: doctorInfo?.name,
+      };
       const appointment = new this.appointmentModel(appointmentModelObject);
       const createdApppointment = await appointment.save();
       return createdApppointment;
@@ -82,7 +99,7 @@ export class AppointmentService {
     date: string,
     doctorId?: string,
     patientId?: string,
-  ): Promise<Appointment[]> {
+  ): Promise<any[]> {
     try {
       if ((!doctorId && !patientId) || !date) {
         throw new BadRequestException(
@@ -100,7 +117,15 @@ export class AppointmentService {
           HttpStatus.NOT_FOUND,
         );
       }
-      return appointments;
+      const sortedAppointments = appointments.sort((a, b) => {
+        const timeToMinutes = (time) => {
+          const [hours, minutes] = time.split(':').map(Number);
+          return hours * 60 + minutes;
+        };
+
+        return timeToMinutes(a.startTime) - timeToMinutes(b.startTime);
+      });
+      return sortedAppointments;
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }

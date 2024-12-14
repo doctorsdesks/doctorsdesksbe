@@ -18,19 +18,19 @@ export class Clinic extends Document {
   })
   appointmentFee: number;
 
-  @Prop({
-    type: Number,
-    required: true,
-    min: [0, 'Please save followup fee. Minimum is 0'],
-  })
-  followupFee: number;
+  // @Prop({
+  //   type: Number,
+  //   required: true,
+  //   min: [0, 'Please save followup fee. Minimum is 0'],
+  // })
+  // followupFee: number;
 
-  @Prop({
-    type: Number,
-    required: true,
-    min: [0, 'Please save followup days. Minimum is 0'],
-  })
-  followupDays: number;
+  // @Prop({
+  //   type: Number,
+  //   required: true,
+  //   min: [0, 'Please save followup days. Minimum is 0'],
+  // })
+  // followupDays: number;
 
   @Prop({
     type: Number,

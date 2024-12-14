@@ -66,10 +66,6 @@ export class CreateDoctorDto {
   @Validate(NonEmptyStringArrayConstraint) // Use custom validator
   readonly languages: string[];
 
-  @IsString()
-  @IsNotEmpty()
-  readonly pincode: string;
-
   @IsObject()
   @IsNotEmpty()
   readonly registrationInfo: IdInfo;
@@ -90,7 +86,6 @@ export class CreateDoctorDto {
     specialisation: string,
     otherQualification: string,
     languages: string[],
-    pincode: string,
     registrationInfo: IdInfo,
     panInfo: IdInfo,
     aadharInfo: IdInfo,
@@ -104,7 +99,6 @@ export class CreateDoctorDto {
     this.specialisation = specialisation;
     this.otherQualification = otherQualification || '';
     this.languages = languages;
-    this.pincode = pincode;
     this.registrationInfo = registrationInfo;
     this.panInfo = panInfo;
     this.aadharInfo = aadharInfo;

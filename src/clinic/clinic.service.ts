@@ -24,8 +24,6 @@ export class ClinicService {
       doctorId,
       clinicData.clinicAddress,
       clinicData?.appointmentFee,
-      clinicData?.followupFee,
-      clinicData?.followupDays,
       clinicData?.slotDuration,
       clinicData?.clinicTimings,
     );
@@ -101,10 +99,10 @@ export class ClinicService {
       if (updateClinicData?.feeFollowupPayload) {
         currentClinic.appointmentFee =
           updateClinicData?.feeFollowupPayload?.appointmentFee;
-        currentClinic.followupDays =
-          updateClinicData?.feeFollowupPayload?.followupDays;
-        currentClinic.followupFee =
-          updateClinicData?.feeFollowupPayload?.followupFee;
+        // currentClinic.followupDays =
+        //   updateClinicData?.feeFollowupPayload?.followupDays;
+        // currentClinic.followupFee =
+        //   updateClinicData?.feeFollowupPayload?.followupFee;
       }
       // update slot duration and timings if present
       if (updateClinicData?.timingPayload) {

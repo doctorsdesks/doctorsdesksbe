@@ -7,6 +7,6 @@ export interface SlotTimings {
 
 export interface FeeFollowups {
   appointmentFee: number;
-  followupFee: number;
-  followupDays: number;
+  // followupFee: number;
+  // followupDays: number;
 }

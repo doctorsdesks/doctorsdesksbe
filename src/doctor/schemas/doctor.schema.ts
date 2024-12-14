@@ -32,9 +32,6 @@ export class Doctor extends Document {
   @Prop({ type: [String], required: true })
   languages: string[];
 
-  @Prop({ type: String, required: true })
-  pincode: string;
-
   @Prop({ type: IdInfo, required: true })
   registrationInfo: IdInfo;
 

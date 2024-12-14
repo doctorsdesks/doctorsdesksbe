@@ -43,4 +43,7 @@ export class UpdateDoctorDto {
   @IsArray()
   @Validate(NonEmptyStringArrayConstraint) // Use custom validator
   readonly languages: string[];
+
+  @IsString()
+  readonly imageUrl: string;
 }
