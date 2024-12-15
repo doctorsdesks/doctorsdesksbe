@@ -38,10 +38,11 @@ export class DoctorService {
   async findByPhone(phone: string): Promise<Doctor> {
     const doctor = await this.doctorModel.findOne({ phone }).exec();
     if (!doctor) {
-      throw new HttpException(
-        `No doctor is found with this ${phone}`,
-        HttpStatus.NOT_FOUND,
-      );
+      return null;
+      // throw new HttpException(
+      //   `No doctor is found with this ${phone}`,
+      //   HttpStatus.NOT_FOUND,
+      // );
     }
     return doctor;
   }
