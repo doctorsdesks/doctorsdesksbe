@@ -5,6 +5,7 @@ import {
   ArrayNotEmpty,
   IsEmail,
   IsObject,
+  IsOptional,
 } from 'class-validator';
 import { Gender } from 'src/common/enums';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
@@ -26,6 +27,10 @@ export class SignupDoctorDto {
   @IsNotEmpty()
   readonly gender: Gender;
 
+  @IsString()
+  @IsNotEmpty()
+  readonly dob: string;
+
   @IsEmail()
   readonly email: string;
 
@@ -35,7 +40,27 @@ export class SignupDoctorDto {
 
   @IsString()
   @IsNotEmpty()
+  readonly graduation: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly graduationCollege: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly graduationYear: string;
+
+  @IsOptional()
+  @IsString()
   readonly specialisation: string;
+
+  @IsOptional()
+  @IsString()
+  readonly specialisationCollege: string;
+
+  @IsOptional()
+  @IsString()
+  readonly specialisationYear: string;
 
   @IsString()
   readonly otherQualification: string;

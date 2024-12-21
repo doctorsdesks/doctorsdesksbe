@@ -51,6 +51,12 @@ export class Appointment extends Document {
 
   @Prop({
     type: String,
+    required: false,
+  })
+  reasonForCancel: string;
+
+  @Prop({
+    type: String,
     required: true,
     enum: Object.values(AppointmentByType),
   })

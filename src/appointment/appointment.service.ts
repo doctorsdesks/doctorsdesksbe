@@ -166,7 +166,18 @@ export class AppointmentService {
           currentAppointment.status = AppointmentStatus.COMPLETED;
           break;
         case AppointmentUpdateType.CANCEL:
-          currentAppointment.status = AppointmentStatus.CANCELLED;
+          {
+            currentAppointment.status = AppointmentStatus.CANCELLED;
+            const reasonForCancel: string =
+              updateAppointmentDto?.reasonForCancel || '';
+            if (reasonForCancel !== '') {
+              throw new HttpException(
+                `Please provide a valid reason for cancelling.`,
+                HttpStatus.BAD_REQUEST,
+              );
+            }
+            currentAppointment.reasonForCancel = reasonForCancel;
+          }
           break;
         default:
           break;

@@ -6,6 +6,7 @@ import {
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,
+  IsOptional,
 } from 'class-validator';
 
 // Custom validator to enforce non-empty array with at least one non-empty string
@@ -33,10 +34,19 @@ export class UpdateDoctorDto {
   @IsNotEmpty()
   readonly experience: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   readonly specialisation: string;
 
+  @IsOptional()
+  @IsString()
+  readonly specialisationCollege: string;
+
+  @IsOptional()
+  @IsString()
+  readonly specialisationYear: string;
+
+  @IsOptional()
   @IsString()
   readonly otherQualification: string;
 
