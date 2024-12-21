@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsObject,
+  IsOptional,
   IsString,
 } from 'class-validator';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
@@ -20,6 +21,10 @@ export class CreateClinicDto {
   @IsNumber()
   appointmentFee: number;
 
+  @IsOptional()
+  @IsNumber()
+  emergencyFee: number;
+
   // @IsNumber()
   // followupFee: number;
 
@@ -36,6 +41,7 @@ export class CreateClinicDto {
     doctorId: string,
     clinicAddress: ClinicAddress,
     appointmentFee?: number,
+    emergencyFee?: number,
     // followupFee?: number,
     // followupDays?: number,
     slotDuration?: number,
@@ -44,6 +50,7 @@ export class CreateClinicDto {
     this.doctorId = doctorId;
     this.clinicAddress = clinicAddress;
     this.appointmentFee = appointmentFee || 0;
+    this.emergencyFee = emergencyFee || 0;
     // this.followupFee = followupFee || 0;
     // this.followupDays = followupDays || 0;
     this.slotDuration = slotDuration || 5;

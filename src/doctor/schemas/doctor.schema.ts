@@ -17,6 +17,9 @@ export class Doctor extends Document {
   @Prop({ type: String, enum: Object.values(Gender), required: true })
   gender: string;
 
+  @Prop({ type: String, required: true })
+  dob: string;
+
   @Prop({ type: String, default: '' })
   email: string;
 
@@ -24,7 +27,22 @@ export class Doctor extends Document {
   experience: string;
 
   @Prop({ type: String, required: true })
+  graduation: string;
+
+  @Prop({ type: String, required: true })
+  graduationCollege: string;
+
+  @Prop({ type: String, required: true })
+  graduationYear: string;
+
+  @Prop({ type: String, required: true })
   specialisation: string;
+
+  @Prop({ type: String, required: true })
+  specialisationCollege: string;
+
+  @Prop({ type: String, required: true })
+  specialisationYear: string;
 
   @Prop({ type: String, default: '' })
   otherQualification: string;

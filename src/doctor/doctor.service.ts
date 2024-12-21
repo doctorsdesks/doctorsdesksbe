@@ -60,7 +60,10 @@ export class DoctorService {
         );
       }
       doctor.experience = updateDoctorDto.experience;
-      doctor.specialisation = updateDoctorDto.specialisation;
+      doctor.specialisation = updateDoctorDto.specialisation || '';
+      doctor.specialisationCollege =
+        updateDoctorDto.specialisationCollege || '';
+      doctor.specialisationYear = updateDoctorDto.specialisationYear || '';
       doctor.otherQualification = updateDoctorDto.otherQualification;
       doctor.languages = updateDoctorDto.languages;
       doctor.imageUrl = updateDoctorDto?.imageUrl || '';

@@ -18,6 +18,13 @@ export class Clinic extends Document {
   })
   appointmentFee: number;
 
+  @Prop({
+    type: Number,
+    required: true,
+    min: [0, 'Please save appointment fee. Mininum is 0'],
+  })
+  emergencyFee: number;
+
   // @Prop({
   //   type: Number,
   //   required: true,

@@ -24,6 +24,7 @@ export class ClinicService {
       doctorId,
       clinicData.clinicAddress,
       clinicData?.appointmentFee,
+      clinicData?.emergencyFee,
       clinicData?.slotDuration,
       clinicData?.clinicTimings,
     );
@@ -99,6 +100,8 @@ export class ClinicService {
       if (updateClinicData?.feeFollowupPayload) {
         currentClinic.appointmentFee =
           updateClinicData?.feeFollowupPayload?.appointmentFee;
+        currentClinic.emergencyFee =
+          updateClinicData?.feeFollowupPayload?.emergencyFee;
         // currentClinic.followupDays =
         //   updateClinicData?.feeFollowupPayload?.followupDays;
         // currentClinic.followupFee =
