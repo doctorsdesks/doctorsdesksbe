@@ -10,10 +10,24 @@ import { Patient } from './schemas/patient.schema';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { Address } from 'src/common/models/address.model';
+import { Gender } from 'src/common/enums';
 
 export interface PatientSearchResult {
   name: string;
   phone: string;
+  age: string;
+}
+
+export interface PatientInfoResult {
+  phone: string;
+  imageUrl: string;
+  name: string;
+  gender: Gender;
+  bloodGroup: string;
+  alternatePhone: string;
+  maritalStatus: string;
+  emailId: string;
+  address: Address;
   age: string;
 }
 
@@ -50,7 +64,7 @@ export class PatientService {
     }
   }
 
-  async getPatientByPhone(phone: string): Promise<Patient> {
+  async getPatientByPhone(phone: string): Promise<PatientInfoResult> {
     try {
       const patient = await this.patientModel.findOne({ phone }).exec();
       if (!patient) {
@@ -59,7 +73,18 @@ export class PatientService {
           HttpStatus.NOT_FOUND,
         );
       }
-      return patient;
+      return {
+        phone: patient.phone,
+        imageUrl: patient.imageUrl,
+        name: patient.name,
+        gender: Gender[patient.gender],
+        bloodGroup: patient.bloodGroup,
+        alternatePhone: patient.alternatePhone,
+        maritalStatus: patient.maritalStatus,
+        emailId: patient.emailId,
+        address: patient.address,
+        age: this.calculateAge(patient.dob).toString(),
+      };
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
@@ -90,6 +115,23 @@ export class PatientService {
     }
   }
 
+  calculateAge(dob) {
+    const today = new Date();
+    const birthDate = new Date(dob);
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    // Adjust age if birthday hasn't occurred yet this year
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  }
+
   async getPatientsBySeachText(
     searchString: string,
   ): Promise<PatientSearchResult[]> {
@@ -106,25 +148,10 @@ export class PatientService {
 
       // Transform the results to include calculated age
       return patients.map((patient) => {
-        // Calculate age based on dob
-        const today = new Date();
-        const birthDate = new Date(patient.dob);
-
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-
-        // Adjust age if birthday hasn't occurred yet this year
-        if (
-          monthDiff < 0 ||
-          (monthDiff === 0 && today.getDate() < birthDate.getDate())
-        ) {
-          age--;
-        }
-
         return {
           name: patient.name,
           phone: patient.phone,
-          age: age.toString(),
+          age: this.calculateAge(patient.dob).toString(),
         };
       });
     } catch (error) {
