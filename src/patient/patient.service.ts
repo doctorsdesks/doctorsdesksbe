@@ -9,6 +9,13 @@ import { Model } from 'mongoose';
 import { Patient } from './schemas/patient.schema';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
+import { Address } from 'src/common/models/address.model';
+
+export interface PatientSearchResult {
+  name: string;
+  phone: string;
+  age: string;
+}
 
 @Injectable()
 export class PatientService {
@@ -25,6 +32,11 @@ export class PatientService {
         name: createPatientDto.name,
         gender: createPatientDto.gender,
         dob: dob,
+        bloodGroup: createPatientDto?.bloodGroup || '',
+        alternatePhone: createPatientDto?.alternatePhone || '',
+        maritalStatus: createPatientDto?.maritalStatus || '',
+        emailId: createPatientDto?.emailId || '',
+        address: createPatientDto?.address || new Address('', '', '', '', ''),
       });
       const createdPatient = await patient.save();
       return createdPatient;
@@ -66,8 +78,55 @@ export class PatientService {
         );
       }
       patient.imageUrl = updatePatientDto.imageUrl || '';
+      patient.alternatePhone = updatePatientDto?.alternatePhone || '';
+      patient.maritalStatus = updatePatientDto?.maritalStatus || '';
+      patient.emailId = updatePatientDto?.emailId || '';
+      patient.address =
+        updatePatientDto?.address || new Address('', '', '', '', '');
       const updatedPatient = await patient.save();
       return updatedPatient;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getPatientsBySeachText(
+    searchString: string,
+  ): Promise<PatientSearchResult[]> {
+    try {
+      // Find patients where searchString is part of phone or name (case insensitive)
+      const patients = await this.patientModel
+        .find({
+          $or: [
+            { phone: { $regex: searchString, $options: 'i' } },
+            { name: { $regex: searchString, $options: 'i' } },
+          ],
+        })
+        .exec();
+
+      // Transform the results to include calculated age
+      return patients.map((patient) => {
+        // Calculate age based on dob
+        const today = new Date();
+        const birthDate = new Date(patient.dob);
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+
+        // Adjust age if birthday hasn't occurred yet this year
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < birthDate.getDate())
+        ) {
+          age--;
+        }
+
+        return {
+          name: patient.name,
+          phone: patient.phone,
+          age: age.toString(),
+        };
+      });
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }

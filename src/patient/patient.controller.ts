@@ -20,6 +20,11 @@ export class PatientController {
     return this.patientService.updatePatient(phone, updatePatientDto);
   }
 
+  @Get('/search/:text')
+  getPatientsBySeachText(@Param('text') searchString: string) {
+    return this.patientService.getPatientsBySeachText(searchString);
+  }
+
   @Get('/:phone')
   getPatientByPhone(@Param('phone') phone: string) {
     return this.patientService.getPatientByPhone(phone);

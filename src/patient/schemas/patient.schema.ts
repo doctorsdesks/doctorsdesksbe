@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Gender } from 'src/common/enums';
+import { Address } from 'src/common/models/address.model';
 
 @Schema({ timestamps: true }) // Enable timestamps
 export class Patient extends Document {
@@ -18,6 +19,21 @@ export class Patient extends Document {
 
   @Prop({ type: Date, required: true })
   dob: Date;
+
+  @Prop({ type: String, default: '' })
+  bloodGroup: string;
+
+  @Prop({ type: String, default: '' })
+  alternatePhone: string;
+
+  @Prop({ type: String, default: '' })
+  maritalStatus: string;
+
+  @Prop({ type: String, default: '' })
+  emailId: string;
+
+  @Prop({ type: Address, default: '' })
+  address: Address;
 
   // createAt and updatedAt will be added automatically by mongo.
 }
