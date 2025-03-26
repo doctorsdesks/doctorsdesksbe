@@ -9,8 +9,9 @@ import { Model } from 'mongoose';
 import { Patient } from './schemas/patient.schema';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { Address } from 'src/common/models/address.model';
-import { Gender } from 'src/common/enums';
+import { Gender, UserType } from 'src/common/enums';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { UserService } from 'src/users/user.service';
 
 export interface PatientSearchResult {
   name: string;
@@ -27,40 +28,54 @@ export interface PatientInfoResult {
   alternatePhone: string;
   maritalStatus: string;
   emailId: string;
-  address: Address;
+  city: string;
+  state: string;
+  pincode: string;
   age: string;
 }
 
 @Injectable()
 export class PatientService {
   constructor(
+    private readonly userService: UserService,
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
   ) {}
 
   async createPatient(createPatientDto: CreatePatientDto): Promise<Patient> {
-    try {
-      const dob = new Date(createPatientDto.dob);
-      const patient = new this.patientModel({
-        phone: createPatientDto.phone,
-        imageUrl: createPatientDto.imageUrl,
-        name: createPatientDto.name,
-        gender: createPatientDto.gender,
-        dob: dob,
-        bloodGroup: createPatientDto?.bloodGroup || '',
-        alternatePhone: createPatientDto?.alternatePhone || '',
-        maritalStatus: createPatientDto?.maritalStatus || '',
-        emailId: createPatientDto?.emailId || '',
-        address: createPatientDto?.address || new Address('', '', '', '', ''),
-      });
-      const createdPatient = await patient.save();
-      return createdPatient;
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new ConflictException(
-          `Patient is already exist with ${createPatientDto.phone}`,
-        );
+    // create user
+    const user = new CreateUserDto(
+      createPatientDto?.phone,
+      createPatientDto?.password,
+      UserType.PATIENT,
+    );
+    const response = await this.userService.createUser(user);
+    if (response.status === 'Success') {
+      try {
+        const dob = new Date(createPatientDto.dob);
+        const patient = new this.patientModel({
+          phone: createPatientDto.phone,
+          imageUrl: createPatientDto.imageUrl,
+          name: createPatientDto.name,
+          gender: createPatientDto.gender,
+          dob: dob,
+          bloodGroup: createPatientDto?.bloodGroup || '',
+          alternatePhone: createPatientDto?.alternatePhone || '',
+          maritalStatus: createPatientDto?.maritalStatus || '',
+          emailId: createPatientDto?.emailId || '',
+          city: createPatientDto?.city,
+          state: createPatientDto?.state,
+          pincode: createPatientDto?.pincode,
+        });
+        const createdPatient = await patient.save();
+        return createdPatient;
+      } catch (error) {
+        if (error.code === 11000) {
+          throw new ConflictException(
+            `Patient is already exist with ${createPatientDto.phone}`,
+          );
+        }
+        throw new HttpException(error, HttpStatus.BAD_REQUEST);
       }
-      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -82,7 +97,9 @@ export class PatientService {
         alternatePhone: patient.alternatePhone,
         maritalStatus: patient.maritalStatus,
         emailId: patient.emailId,
-        address: patient.address,
+        city: patient.city,
+        state: patient.state,
+        pincode: patient.pincode,
         age: this.calculateAge(patient.dob).toString(),
       };
     } catch (error) {
@@ -106,8 +123,9 @@ export class PatientService {
       patient.alternatePhone = updatePatientDto?.alternatePhone || '';
       patient.maritalStatus = updatePatientDto?.maritalStatus || '';
       patient.emailId = updatePatientDto?.emailId || '';
-      patient.address =
-        updatePatientDto?.address || new Address('', '', '', '', '');
+      patient.city = updatePatientDto?.city;
+      patient.state = updatePatientDto?.state;
+      patient.pincode = updatePatientDto?.pincode;
       const updatedPatient = await patient.save();
       return updatedPatient;
     } catch (error) {

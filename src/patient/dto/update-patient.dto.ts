@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsString } from 'class-validator';
-import { Address } from 'src/common/models/address.model';
 
 export class UpdatePatientDto {
   @IsString()
@@ -16,5 +15,14 @@ export class UpdatePatientDto {
   readonly emailId: string;
 
   @IsString()
-  readonly address: Address;
+  @IsNotEmpty()
+  readonly city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly state: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly pincode: string;
 }

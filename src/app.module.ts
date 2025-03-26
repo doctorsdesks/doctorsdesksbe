@@ -22,6 +22,9 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { DfoController } from './dfo/dfo.controller';
 import { PatientController } from './patient/patient.controller';
 import { AppointmentController } from './appointment/appointment.controller';
+import { UserModule } from './users/user.module';
+import { SlotsModule } from './slots/slots.module';
+import { SlotsController } from './slots/slots.controller';
 
 @Module({
   imports: [
@@ -35,8 +38,10 @@ import { AppointmentController } from './appointment/appointment.controller';
     HealthModule,
     DfoModule,
     PatientModule,
+    UserModule,
     AppointmentModule,
     TranslationModule,
+    SlotsModule,
   ],
   controllers: [
     AppController,
@@ -47,6 +52,7 @@ import { AppointmentController } from './appointment/appointment.controller';
     PatientController,
     AppointmentController,
     TranslationController,
+    SlotsController,
   ],
   providers: [
     AppService,
