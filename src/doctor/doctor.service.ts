@@ -35,6 +35,18 @@ export class DoctorService {
     }
   }
 
+  async findAll(): Promise<Array<Doctor>> {
+    const doctors = await this.doctorModel.find().exec();
+    return doctors;
+  }
+
+  async findByCity(city: string): Promise<Array<Doctor>> {
+    const doctors = await this.doctorModel.find().exec();
+    return doctors;
+  }
+
+
+
   async findByPhone(phone: string): Promise<Doctor> {
     const doctor = await this.doctorModel.findOne({ phone }).exec();
     if (!doctor) {

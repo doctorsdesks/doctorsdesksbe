@@ -30,4 +30,14 @@ export class DoctorController {
   findByPhone(@Param('id') id: string) {
     return this.doctorService.findByPhone(id.toString());
   }
+
+  @Get("/all")
+  findAllDoctors() {
+    return this.doctorService.findAll();
+  }
+
+  @Get("/location/:city")
+  findAllDoctorsByCity(@Param('city') city: string) {
+    return this.doctorService.findByCity(city);
+  }
 }

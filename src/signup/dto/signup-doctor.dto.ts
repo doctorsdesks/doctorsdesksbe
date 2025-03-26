@@ -17,6 +17,10 @@ export class SignupDoctorDto {
   readonly phone: string;
 
   @IsString()
+  @IsNotEmpty()
+  readonly password: string;
+
+  @IsString()
   readonly imageUrl: string;
 
   @IsString()

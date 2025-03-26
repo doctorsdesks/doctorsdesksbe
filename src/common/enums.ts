@@ -6,6 +6,11 @@ export enum Gender {
   OTHER = 'OTHER',
 }
 
+export enum UserType {
+  PATIENT = 'PATIENT',
+  DOCTOR = 'DOCTOR',
+}
+
 export enum UserStatus {
   NOT_VERIFIED = 'NOT_VERIFIED',
   VERIFIED = 'VERIFIED',

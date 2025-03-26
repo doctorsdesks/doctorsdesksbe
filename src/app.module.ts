@@ -22,6 +22,7 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { DfoController } from './dfo/dfo.controller';
 import { PatientController } from './patient/patient.controller';
 import { AppointmentController } from './appointment/appointment.controller';
+import { UserModule } from './users/user.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AppointmentController } from './appointment/appointment.controller';
     HealthModule,
     DfoModule,
     PatientModule,
+    UserModule,
     AppointmentModule,
     TranslationModule,
   ],

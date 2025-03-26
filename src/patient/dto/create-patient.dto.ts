@@ -8,6 +8,10 @@ export class CreatePatientDto {
   readonly phone: string;
 
   @IsString()
+  @IsNotEmpty()
+  readonly password: string;
+
+  @IsString()
   readonly imageUrl: string;
 
   @IsString()
@@ -34,11 +38,21 @@ export class CreatePatientDto {
   @IsString()
   readonly emailId: string;
 
-  @IsObject()
-  readonly address: Address;
+  @IsString()
+  @IsNotEmpty()
+  readonly city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly state: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly pincode: string;
 
   constructor(
     phone: string,
+    password: string,
     imageUrl: string,
     name: string,
     gender: Gender,
@@ -47,9 +61,12 @@ export class CreatePatientDto {
     alternatePhone: string,
     maritalStatus: string,
     emailId: string,
-    address: Address,
+    city: string,
+    state: string,
+    pincode: string
   ) {
     this.phone = phone;
+    this.password = password;
     this.imageUrl = imageUrl || '';
     this.name = name;
     this.gender = gender;
@@ -58,6 +75,8 @@ export class CreatePatientDto {
     this.alternatePhone = alternatePhone || '';
     this.maritalStatus = maritalStatus || '';
     this.emailId = emailId || '';
-    this.address = address || new Address('', '', '', '', '');
+    this.city = city;
+    this.state = state;
+    this.pincode = pincode;
   }
 }
