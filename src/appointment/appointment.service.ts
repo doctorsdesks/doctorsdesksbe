@@ -16,6 +16,7 @@ import {
   OPDAppointmentType,
 } from 'src/common/enums';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { LockAppointmentDto } from './dto/lock-appointment.dto';
 import { PatientService } from 'src/patient/patient.service';
 import { DoctorService } from 'src/doctor/doctor.service';
 
@@ -44,6 +45,7 @@ export class AppointmentService {
             ? AppointmentStatus.ACCEPTED
             : AppointmentStatus.PENDING,
         createdBy: AppointmentByType[createAppointmentDto.originEntity],
+        isLockedByDoctor: false,
       };
       if (
         AppointmentType[createAppointmentDto?.appointmentType] ===
@@ -128,6 +130,44 @@ export class AppointmentService {
       return sortedAppointments;
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async lockAppointment(
+    lockAppointmentDto: LockAppointmentDto,
+  ): Promise<Appointment> {
+    try {
+      // Create appointment object with required fields
+      const appointmentModelObject: any = {
+        doctorId: lockAppointmentDto.doctorId,
+        patientId: lockAppointmentDto.doctorId, // Using doctorId as patientId as per requirement
+        date: lockAppointmentDto.date,
+        startTime: lockAppointmentDto.startTime,
+        endTime: lockAppointmentDto.endTime,
+        appointmentType: AppointmentType.OPD, // Default to OPD
+        status: AppointmentStatus.ACCEPTED, // Auto-accept since it's created by doctor
+        createdBy: AppointmentByType.DOCTOR,
+        isLockedByDoctor: lockAppointmentDto.isLockedByDoctor || true, // Default to true if not provided
+      };
+
+      // Get doctor info
+      const doctorInfo = await this.doctorService.findByPhone(
+        lockAppointmentDto.doctorId,
+      );
+
+      // Add doctor info to appointment
+      appointmentModelObject.doctorName = doctorInfo?.name;
+      appointmentModelObject.patientName = doctorInfo?.name; // Same as doctor since patientId is doctorId
+
+      // Create and save the appointment
+      const appointment = new this.appointmentModel(appointmentModelObject);
+      const createdAppointment = await appointment.save();
+      return createdAppointment;
+    } catch (error) {
+      throw new HttpException(
+        `Error creating locked appointment: ${error.message}`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 

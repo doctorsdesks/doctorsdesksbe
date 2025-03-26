@@ -15,7 +15,7 @@ export class Appointment extends Document {
   @Prop({ type: String, required: false })
   doctorImageUrl: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: false })
   doctorName: string;
 
   @Prop({ type: String, required: true, index: true })
@@ -24,7 +24,7 @@ export class Appointment extends Document {
   @Prop({ type: String, required: false })
   patientImageUrl: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: false })
   patientName: string;
 
   @Prop({ type: String, required: true })
@@ -68,6 +68,9 @@ export class Appointment extends Document {
     required: false,
   })
   updatedBy?: string;
+
+  @Prop({ type: Boolean, default: false })
+  isLockedByDoctor: boolean;
 
   // createAt and updatedAt will be added automatically by mongo.
 }

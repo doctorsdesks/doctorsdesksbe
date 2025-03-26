@@ -9,10 +9,14 @@ import { Model } from 'mongoose';
 import { Doctor } from './schemas/doctor.schema';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
+import { ClinicService } from 'src/clinic/clinic.service';
 
 @Injectable()
 export class DoctorService {
-  constructor(@InjectModel(Doctor.name) private doctorModel: Model<Doctor>) {}
+  constructor(
+    private readonly clinicService: ClinicService,
+    @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
+  ) {}
 
   async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
     console.info(
@@ -40,21 +44,65 @@ export class DoctorService {
     return doctors;
   }
 
-  async findByCity(city: string): Promise<Array<Doctor>> {
-    const doctors = await this.doctorModel.find().exec();
-    return doctors;
+  async findByCity(
+    city: string,
+    state: string,
+    pincode: string,
+  ): Promise<Array<Doctor>> {
+    try {
+      const allDoctors = await this.findAll();
+
+      if (!allDoctors || allDoctors.length === 0) {
+        return [];
+      }
+
+      const doctorsMap = new Map<string, Doctor>(); // Using Map to ensure uniqueness by phone
+
+      for (const doctor of allDoctors) {
+        const doctorClinics = await this.clinicService.getAllClinics(
+          doctor.phone,
+        );
+
+        if (!doctorClinics || doctorClinics.length === 0) {
+          continue;
+        }
+
+        const hasMatchingClinic = doctorClinics.some((clinic) => {
+          const clinicAddress = clinic.clinicAddress.address;
+
+          const cityMatches = city
+            ? clinicAddress.city.toLowerCase() === city.toLowerCase()
+            : true;
+
+          const stateMatches = state
+            ? clinicAddress.state.toLowerCase() === state.toLowerCase()
+            : true;
+
+          const pincodeMatches = pincode
+            ? clinicAddress.pincode === pincode
+            : true;
+
+          return cityMatches || stateMatches || pincodeMatches;
+        });
+
+        if (hasMatchingClinic) {
+          doctorsMap.set(doctor.phone, doctor);
+        }
+      }
+
+      return Array.from(doctorsMap.values());
+    } catch (error) {
+      throw new HttpException(
+        `Error finding doctors by city: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
-
-
 
   async findByPhone(phone: string): Promise<Doctor> {
     const doctor = await this.doctorModel.findOne({ phone }).exec();
     if (!doctor) {
       return null;
-      // throw new HttpException(
-      //   `No doctor is found with this ${phone}`,
-      //   HttpStatus.NOT_FOUND,
-      // );
     }
     return doctor;
   }

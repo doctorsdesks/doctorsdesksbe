@@ -10,6 +10,7 @@ import {
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { LockAppointmentDto } from './dto/lock-appointment.dto';
 
 @Controller('/v1/appointment')
 export class AppointmentController {
@@ -18,6 +19,11 @@ export class AppointmentController {
   @Post()
   createAppointment(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentService.createAppointment(createAppointmentDto);
+  }
+
+  @Post('/lock')
+  lockAppointment(@Body() lockAppointmentDto: LockAppointmentDto) {
+    return this.appointmentService.lockAppointment(lockAppointmentDto);
   }
 
   @Post('/:id')

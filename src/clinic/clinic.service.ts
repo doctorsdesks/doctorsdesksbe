@@ -54,6 +54,18 @@ export class ClinicService {
     }
   }
 
+  async getClinicByClinicId(clinicId: string): Promise<Clinic> {
+    try {
+      const clinicDetails = await this.clinicModel
+        .findOne({ _id: new Types.ObjectId(clinicId) })
+        .exec();
+      if (clinicDetails !== null) return clinicDetails;
+      else return null;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async updateClinic(
     doctorId: string,
     clinicId: string,

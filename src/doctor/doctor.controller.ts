@@ -31,13 +31,17 @@ export class DoctorController {
     return this.doctorService.findByPhone(id.toString());
   }
 
-  @Get("/all")
+  @Get('/all')
   findAllDoctors() {
     return this.doctorService.findAll();
   }
 
-  @Get("/location/:city")
-  findAllDoctorsByCity(@Param('city') city: string) {
-    return this.doctorService.findByCity(city);
+  @Get('/location/:city/:state/:pincode')
+  findAllDoctorsByCity(
+    @Param('city') city: string,
+    @Param('state') state: string,
+    @Param('pincode') pincode: string,
+  ) {
+    return this.doctorService.findByCity(city, state, pincode);
   }
 }

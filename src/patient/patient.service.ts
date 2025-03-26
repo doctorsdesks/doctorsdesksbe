@@ -9,7 +9,6 @@ import { Model } from 'mongoose';
 import { Patient } from './schemas/patient.schema';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { Address } from 'src/common/models/address.model';
 import { Gender, UserType } from 'src/common/enums';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UserService } from 'src/users/user.service';
@@ -29,7 +28,9 @@ export interface PatientInfoResult {
   alternatePhone: string;
   maritalStatus: string;
   emailId: string;
-  address: Address;
+  city: string;
+  state: string;
+  pincode: string;
   age: string;
 }
 
@@ -41,10 +42,14 @@ export class PatientService {
   ) {}
 
   async createPatient(createPatientDto: CreatePatientDto): Promise<Patient> {
-    // create user 
-    const user = new CreateUserDto(createPatientDto?.phone, createPatientDto?.password, UserType.PATIENT);
+    // create user
+    const user = new CreateUserDto(
+      createPatientDto?.phone,
+      createPatientDto?.password,
+      UserType.PATIENT,
+    );
     const response = await this.userService.createUser(user);
-    if(response.status === "Success") {
+    if (response.status === 'Success') {
       try {
         const dob = new Date(createPatientDto.dob);
         const patient = new this.patientModel({
@@ -92,7 +97,9 @@ export class PatientService {
         alternatePhone: patient.alternatePhone,
         maritalStatus: patient.maritalStatus,
         emailId: patient.emailId,
-        address: patient.address,
+        city: patient.city,
+        state: patient.state,
+        pincode: patient.pincode,
         age: this.calculateAge(patient.dob).toString(),
       };
     } catch (error) {
@@ -116,8 +123,9 @@ export class PatientService {
       patient.alternatePhone = updatePatientDto?.alternatePhone || '';
       patient.maritalStatus = updatePatientDto?.maritalStatus || '';
       patient.emailId = updatePatientDto?.emailId || '';
-      patient.address =
-        updatePatientDto?.address || new Address('', '', '', '', '');
+      patient.city = updatePatientDto?.city;
+      patient.state = updatePatientDto?.state;
+      patient.pincode = updatePatientDto?.pincode;
       const updatedPatient = await patient.save();
       return updatedPatient;
     } catch (error) {

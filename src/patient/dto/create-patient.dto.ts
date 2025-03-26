@@ -1,6 +1,5 @@
-import { IsString, IsNotEmpty, IsObject } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 import { Gender } from 'src/common/enums';
-import { Address } from 'src/common/models/address.model';
 
 export class CreatePatientDto {
   @IsString()
@@ -63,7 +62,7 @@ export class CreatePatientDto {
     emailId: string,
     city: string,
     state: string,
-    pincode: string
+    pincode: string,
   ) {
     this.phone = phone;
     this.password = password;

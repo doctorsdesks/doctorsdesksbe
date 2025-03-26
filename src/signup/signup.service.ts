@@ -24,10 +24,13 @@ export class SignupService {
 
   async signupDoctor(signupDoctorDto: SignupDoctorDto): Promise<Doctor> {
     // add new user as doctor
-    const user = new CreateUserDto(signupDoctorDto?.phone, signupDoctorDto?.password, UserType.DOCTOR);
+    const user = new CreateUserDto(
+      signupDoctorDto?.phone,
+      signupDoctorDto?.password,
+      UserType.DOCTOR,
+    );
     const response = await this.userService.createUser(user);
-    if (response.status === "Success") {
-
+    if (response.status === 'Success') {
       // add new Doctor document
       const newDoctor = await this.createDoctor(signupDoctorDto);
 
@@ -45,7 +48,6 @@ export class SignupService {
       this.dfoService.createDfo(createDfoDto);
 
       return newDoctor;
-
     }
   }
 
