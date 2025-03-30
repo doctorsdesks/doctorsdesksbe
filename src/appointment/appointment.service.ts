@@ -103,15 +103,13 @@ export class AppointmentService {
     patientId?: string,
   ): Promise<any[]> {
     try {
-      if ((!doctorId && !patientId) || !date) {
-        throw new BadRequestException(
-          'Provide either doctorId or patientId, along with a date.',
-        );
+      if (!doctorId && !patientId) {
+        throw new BadRequestException('Provide either doctorId or patientId.');
       }
       const query: any = {};
       if (doctorId) query.doctorId = doctorId;
       if (patientId) query.patientId = patientId;
-      query.date = date;
+      if (date) query.date = date;
       const appointments = await this.appointmentModel.find(query).exec();
       if (!appointments) {
         throw new HttpException(
