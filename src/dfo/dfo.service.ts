@@ -83,4 +83,34 @@ export class DfoService {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
+
+  /**
+   * Deletes the entire DFO document for a doctor
+   * @param doctorId Doctor ID to delete DFO for
+   * @returns Object containing success status and message
+   */
+  async deleteDfoDocument(
+    doctorId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await this.dfoModel.findOneAndDelete({ doctorId }).exec();
+
+      if (!result) {
+        return {
+          success: false,
+          message: `DFO not found for doctor with ID ${doctorId}`,
+        };
+      }
+
+      return {
+        success: true,
+        message: `DFO for doctor with ID ${doctorId} has been deleted successfully`,
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Error deleting DFO: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateClinicDto } from './dto/create-clinic.dto';
 import { UpdateClinicDto } from './dto/update-clinic.dto';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
+import { EachDayInfo } from 'src/common/models/eachDayInfo.model';
 
 @Injectable()
 export class ClinicService {
@@ -25,8 +26,10 @@ export class ClinicService {
       clinicData.clinicAddress,
       clinicData?.appointmentFee,
       clinicData?.emergencyFee,
-      clinicData?.slotDuration,
-      clinicData?.clinicTimings,
+      clinicData?.slotDurationNormal,
+      clinicData?.slotDurationEmergency,
+      clinicData?.clinicTimingsNormal,
+      clinicData?.clinicTimingsEmergency,
     );
     const createdClinic = await this.createClinic(createdClinicDto);
     return `${createdClinic.clinicAddress.clinicName} has been added successfully!`;
@@ -121,16 +124,167 @@ export class ClinicService {
       }
       // update slot duration and timings if present
       if (updateClinicData?.timingPayload) {
-        currentClinic.slotDuration =
-          updateClinicData?.timingPayload?.slotDuration;
-        currentClinic.clinicTimings =
-          updateClinicData?.timingPayload?.eachDayInfo;
+        const normalTimings =
+          updateClinicData.timingPayload.eachDayInfoNormal || [];
+        const emergencyTimings =
+          updateClinicData.timingPayload.eachDayInfoEmergency || [];
+
+        // Validate that normal timings don't overlap internally
+        if (
+          normalTimings.length > 0 &&
+          !this.validateNoOverlappingTimings(normalTimings)
+        ) {
+          throw new HttpException(
+            'Normal appointment timings overlap for one or more days',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        // Validate that emergency timings don't overlap internally
+        if (
+          emergencyTimings.length > 0 &&
+          !this.validateNoOverlappingTimings(emergencyTimings)
+        ) {
+          throw new HttpException(
+            'Emergency appointment timings overlap for one or more days',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        // Validate that normal and emergency timings don't overlap with each other
+        if (
+          normalTimings.length > 0 &&
+          emergencyTimings.length > 0 &&
+          !this.validateNoOverlappingBetweenNormalAndEmergency(
+            normalTimings,
+            emergencyTimings,
+          )
+        ) {
+          throw new HttpException(
+            'Normal and emergency appointment timings overlap for one or more days',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        // Update normal appointment settings
+        currentClinic.slotDurationNormal =
+          updateClinicData.timingPayload.slotDurationNormal;
+        currentClinic.clinicTimingsNormal =
+          updateClinicData.timingPayload.eachDayInfoNormal;
+
+        // Update emergency appointment settings
+        currentClinic.slotDurationEmergency =
+          updateClinicData.timingPayload.slotDurationEmergency;
+        currentClinic.clinicTimingsEmergency =
+          updateClinicData.timingPayload.eachDayInfoEmergency;
       }
       const updatedClinic = await currentClinic.save();
       return updatedClinic;
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  /**
+   * Validates that timings for each day do not overlap
+   * @param eachDayInfo Array of EachDayInfo objects containing day and timings
+   * @returns boolean indicating whether there are no overlapping timings
+   */
+  private validateNoOverlappingTimings(eachDayInfo: EachDayInfo[]): boolean {
+    // For each day, check if any timings overlap
+    for (const dayInfo of eachDayInfo) {
+      const timings = dayInfo.timings;
+
+      // Sort timings by start time for easier comparison
+      const sortedTimings = [...timings].sort((a, b) => {
+        return (
+          this.timeToMinutes(a.startTime) - this.timeToMinutes(b.startTime)
+        );
+      });
+
+      // Check for overlaps in sorted timings
+      for (let i = 0; i < sortedTimings.length - 1; i++) {
+        const currentTiming = sortedTimings[i];
+        const nextTiming = sortedTimings[i + 1];
+
+        // If end time of current timing is after start time of next timing, they overlap
+        if (
+          this.timeToMinutes(currentTiming.endTime) >
+          this.timeToMinutes(nextTiming.startTime)
+        ) {
+          return false; // Overlap found
+        }
+      }
+    }
+
+    return true; // No overlaps found
+  }
+
+  /**
+   * Validates that normal and emergency timings don't overlap for the same day
+   * @param normalTimings Array of normal EachDayInfo objects
+   * @param emergencyTimings Array of emergency EachDayInfo objects
+   * @returns boolean indicating whether there are no overlapping timings between normal and emergency
+   */
+  private validateNoOverlappingBetweenNormalAndEmergency(
+    normalTimings: EachDayInfo[],
+    emergencyTimings: EachDayInfo[],
+  ): boolean {
+    // Create a map of day to timings for normal appointments
+    const normalTimingsByDay = new Map<
+      string,
+      { start: number; end: number }[]
+    >();
+
+    // Populate the map with normal timings
+    for (const dayInfo of normalTimings) {
+      const dayTimings = dayInfo.timings.map((timing) => ({
+        start: this.timeToMinutes(timing.startTime),
+        end: this.timeToMinutes(timing.endTime),
+      }));
+      normalTimingsByDay.set(dayInfo.day, dayTimings);
+    }
+
+    // Check if emergency timings overlap with normal timings for the same day
+    for (const emergencyDayInfo of emergencyTimings) {
+      const normalDayTimings = normalTimingsByDay.get(emergencyDayInfo.day);
+
+      // If no normal timings for this day, continue
+      if (!normalDayTimings) {
+        continue;
+      }
+
+      // Check each emergency timing against all normal timings for the day
+      for (const emergencyTiming of emergencyDayInfo.timings) {
+        const emergencyStart = this.timeToMinutes(emergencyTiming.startTime);
+        const emergencyEnd = this.timeToMinutes(emergencyTiming.endTime);
+
+        // Check for overlap with any normal timing
+        for (const normalTiming of normalDayTimings) {
+          // Check if emergency timing overlaps with normal timing
+          if (
+            (emergencyStart < normalTiming.end &&
+              emergencyEnd > normalTiming.start) ||
+            (normalTiming.start < emergencyEnd &&
+              normalTiming.end > emergencyStart)
+          ) {
+            return false; // Overlap found
+          }
+        }
+      }
+    }
+
+    return true; // No overlaps found
+  }
+
+  /**
+   * Converts time string in format "HH:MM" to minutes since midnight
+   * @param time Time string in format "HH:MM"
+   * @returns Number of minutes since midnight
+   */
+  private timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
   }
 
   async deleteClinic(doctorId: string, clinicId: string): Promise<string> {

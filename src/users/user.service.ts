@@ -10,6 +10,7 @@ import { User } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UserType } from 'src/common/enums';
+import * as bcrypt from 'bcryptjs';
 
 export interface CreateResponse {
   status: string;
@@ -34,9 +35,29 @@ export interface LoginResponse {
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
+  /**
+   * Encrypts a password using bcrypt
+   * @param password Plain text password
+   * @returns Encrypted password
+   */
+  private async encryptPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+
   async createUser(createUserDto: CreateUserDto): Promise<CreateResponse> {
     try {
-      const user = new this.userModel(createUserDto);
+      // Encrypt the password before saving
+      const encryptedPassword = await this.encryptPassword(
+        createUserDto.password,
+      );
+
+      // Create a new user with the encrypted password
+      const user = new this.userModel({
+        ...createUserDto,
+        password: encryptedPassword,
+      });
+
       const createdUser = await user.save();
       return {
         status: 'Success',
@@ -65,10 +86,13 @@ export class UserService {
     };
   }
 
-  async loginPatient(loginUserDto: LoginUserDto): Promise<LoginResponse> {
+  async login(loginUserDto: LoginUserDto): Promise<LoginResponse> {
     try {
       const user = await this.userModel
-        .findOne({ phone: loginUserDto.phone, userType: UserType.PATIENT })
+        .findOne({
+          phone: loginUserDto.phone,
+          userType: UserType[loginUserDto.type],
+        })
         .exec();
 
       if (!user) {
@@ -78,7 +102,11 @@ export class UserService {
         };
       }
 
-      const isPasswordValid = loginUserDto.password === user.password;
+      // Compare the provided password with the stored encrypted password
+      const isPasswordValid = await bcrypt.compare(
+        loginUserDto.password,
+        user.password,
+      );
 
       if (!isPasswordValid) {
         return {
@@ -98,6 +126,42 @@ export class UserService {
     } catch (error) {
       throw new HttpException(
         `Error during login: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Deletes a user by phone number and user type
+   * @param phone Phone number of the user to delete
+   * @param type User type (PATIENT, DOCTOR, etc.)
+   * @returns Object containing success status and message
+   */
+  async deleteUser(
+    phone: string,
+    type: UserType,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      // Find and delete the user
+      const result = await this.userModel
+        .findOneAndDelete({ phone, userType: type })
+        .exec();
+
+      // Check if a user was actually deleted
+      if (!result) {
+        return {
+          success: false,
+          message: `User not found with phone ${phone} and type ${type}`,
+        };
+      }
+
+      return {
+        success: true,
+        message: `User with phone ${phone} and type ${type} has been deleted successfully`,
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Error deleting user: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

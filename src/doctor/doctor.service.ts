@@ -133,4 +133,34 @@ export class DoctorService {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
+
+  /**
+   * Deletes a doctor by phone number
+   * @param phone Phone number of the doctor to delete
+   * @returns Object containing success status and message
+   */
+  async deleteDoctor(
+    phone: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await this.doctorModel.findOneAndDelete({ phone }).exec();
+
+      if (!result) {
+        return {
+          success: false,
+          message: `Doctor not found with phone ${phone}`,
+        };
+      }
+
+      return {
+        success: true,
+        message: `Doctor with phone ${phone} has been deleted successfully`,
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Error deleting doctor: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

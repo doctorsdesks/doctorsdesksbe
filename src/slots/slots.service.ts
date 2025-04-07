@@ -36,8 +36,7 @@ export class SlotsService {
       ];
       const dayName = days[dayOfWeek];
 
-      // Get the clinic details using direct model query
-      // We need to use InjectModel for this specific case
+      // Get the clinic details
       const clinic = await this.clinicService.getClinicByClinicId(clinicId);
 
       if (!clinic) {
@@ -47,34 +46,78 @@ export class SlotsService {
         );
       }
 
-      // Find the clinic timings for the given day
-      const dayInfo = clinic.clinicTimings.find((info) => info.day === dayName);
+      // Find the normal clinic timings for the given day
+      const normalDayInfo = clinic.clinicTimingsNormal?.find(
+        (info) => info.day === dayName,
+      );
 
-      if (!dayInfo || !dayInfo.timings || dayInfo.timings.length === 0) {
+      // Find the emergency clinic timings for the given day
+      const emergencyDayInfo = clinic.clinicTimingsEmergency?.find(
+        (info) => info.day === dayName,
+      );
+
+      // Check if any timings are available
+      if (
+        (!normalDayInfo ||
+          !normalDayInfo.timings ||
+          normalDayInfo.timings.length === 0) &&
+        (!emergencyDayInfo ||
+          !emergencyDayInfo.timings ||
+          emergencyDayInfo.timings.length === 0)
+      ) {
         return {
           message: `No timings available for ${dayName}`,
-          slots: [],
+          slots: {
+            normalSlots: [],
+            emergencySlots: [],
+          },
         };
       }
 
-      // Generate slots for each timing based on slotDuration
-      const allSlots = [];
-      const slotDurationMinutes = clinic.slotDuration;
+      // Generate normal slots
+      const normalSlots = [];
+      if (
+        normalDayInfo &&
+        normalDayInfo.timings &&
+        normalDayInfo.timings.length > 0
+      ) {
+        for (const timing of normalDayInfo.timings) {
+          const slots = await this.generateSlots(
+            timing.startTime,
+            timing.endTime,
+            clinic.slotDurationNormal,
+            clinic.doctorId,
+            dateStr,
+          );
+          normalSlots.push(...slots);
+        }
+      }
 
-      for (const timing of dayInfo.timings) {
-        const slots = await this.generateSlots(
-          timing.startTime,
-          timing.endTime,
-          slotDurationMinutes,
-          clinic.doctorId,
-          dateStr,
-        );
-        allSlots.push(...slots);
+      // Generate emergency slots
+      const emergencySlots = [];
+      if (
+        emergencyDayInfo &&
+        emergencyDayInfo.timings &&
+        emergencyDayInfo.timings.length > 0
+      ) {
+        for (const timing of emergencyDayInfo.timings) {
+          const slots = await this.generateSlots(
+            timing.startTime,
+            timing.endTime,
+            clinic.slotDurationEmergency,
+            clinic.doctorId,
+            dateStr,
+          );
+          emergencySlots.push(...slots);
+        }
       }
 
       return {
         message: `Slots for clinic on ${dateStr} (${dayName})`,
-        slots: allSlots,
+        slots: {
+          normalSlots,
+          emergencySlots,
+        },
       };
     } catch (error) {
       if (error instanceof HttpException) {

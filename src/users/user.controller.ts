@@ -17,8 +17,8 @@ export class UserController {
     return this.userService.getUser(phone, UserType.DOCTOR);
   }
 
-  @Post('/patientLogin')
-  async loginPatient(@Body() loginUserDto: LoginUserDto) {
-    return this.userService.loginPatient(loginUserDto);
+  @Post('/login')
+  async login(@Body() loginUserDto: LoginUserDto) {
+    return this.userService.login(loginUserDto);
   }
 }

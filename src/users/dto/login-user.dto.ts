@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty } from 'class-validator';
+import { UserType } from 'src/common/enums';
 
 export class LoginUserDto {
   @IsString()
@@ -9,8 +10,13 @@ export class LoginUserDto {
   @IsNotEmpty()
   readonly password: string;
 
-  constructor(phone: string, password: string) {
+  @IsString()
+  @IsNotEmpty()
+  readonly type: UserType;
+
+  constructor(phone: string, password: string, type: UserType) {
     this.phone = phone;
     this.password = password;
+    this.type = type;
   }
 }
