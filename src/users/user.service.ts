@@ -52,9 +52,9 @@ export class UserService {
     }
   }
 
-  async getUserAsPatient(phone: string): Promise<GetUser> {
+  async getUser(phone: string, type: UserType): Promise<GetUser> {
     const user = await this.userModel
-      .findOne({ phone: phone, userType: UserType.PATIENT })
+      .findOne({ phone: phone, userType: type })
       .exec();
     if (!user) {
       return null;

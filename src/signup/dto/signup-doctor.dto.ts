@@ -54,7 +54,7 @@ export class SignupDoctorDto {
   @IsNotEmpty()
   readonly graduationYear: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   readonly specialisation: string;
 

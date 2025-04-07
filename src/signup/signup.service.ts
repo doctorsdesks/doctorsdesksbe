@@ -48,6 +48,9 @@ export class SignupService {
       this.dfoService.createDfo(createDfoDto);
 
       return newDoctor;
+    } else {
+      console.error('Failed to create user account:', response);
+      throw new Error('Failed to create user account');
     }
   }
 
