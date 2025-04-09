@@ -82,7 +82,7 @@ export class SlotsService {
         normalDayInfo.timings.length > 0
       ) {
         for (const timing of normalDayInfo.timings) {
-          const slots = await this.generateSlots(
+          const slots = await this.generateDetailedSlots(
             timing.startTime,
             timing.endTime,
             clinic.slotDurationNormal,
@@ -101,7 +101,7 @@ export class SlotsService {
         emergencyDayInfo.timings.length > 0
       ) {
         for (const timing of emergencyDayInfo.timings) {
-          const slots = await this.generateSlots(
+          const slots = await this.generateDetailedSlots(
             timing.startTime,
             timing.endTime,
             clinic.slotDurationEmergency,
@@ -130,7 +130,7 @@ export class SlotsService {
     }
   }
 
-  private async generateSlots(
+  private async generateDetailedSlots(
     startTime: string,
     endTime: string,
     slotDurationMinutes: number,
@@ -150,6 +150,8 @@ export class SlotsService {
       appointments = await this.appointmentService.getAppointments(
         dateStr,
         doctorId,
+        '',
+        true,
       );
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -174,8 +176,13 @@ export class SlotsService {
       const formattedStartTime = this.formatTime(currentSlotStart);
       const formattedEndTime = this.formatTime(currentSlotEnd);
 
-      // Default slot status
+      // Default slot status and initialize detailed slot
       let slotStatus = SlotStatus.OPEN;
+      const detailedSlot: any = {
+        startTime: formattedStartTime,
+        endTime: formattedEndTime,
+        slotStatus: slotStatus,
+      };
 
       // Check if this slot overlaps with any appointment
       for (const appointment of appointments) {
@@ -187,18 +194,31 @@ export class SlotsService {
           slotStatus = appointment.isLockedByDoctor
             ? SlotStatus.LOCKED
             : SlotStatus.BOOKED;
+
+          detailedSlot.slotStatus = slotStatus;
+
+          // Add appointment details if it's booked
+          if (slotStatus === SlotStatus.BOOKED) {
+            detailedSlot.patientName = appointment.patientName;
+            detailedSlot.appointmentType = appointment.appointmentType;
+            detailedSlot.opdAppointmentType = appointment.opdAppointmentType;
+            detailedSlot.status = appointment.status;
+          }
+
+          // Add locked information if it's locked
+          if (
+            slotStatus === SlotStatus.LOCKED ||
+            appointment.isLockedByDoctor
+          ) {
+            detailedSlot.isLockedByDoctor = appointment.isLockedByDoctor;
+          }
+
           break;
         }
       }
 
-      const currentSlot = new Slot(
-        formattedStartTime,
-        formattedEndTime,
-        slotStatus,
-      );
-
       // Add slot to the list
-      slots.push(currentSlot);
+      slots.push(detailedSlot);
 
       // Move to the next slot
       currentSlotStart = new Date(currentSlotEnd);

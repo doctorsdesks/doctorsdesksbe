@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { PatientService } from './patient.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
@@ -12,10 +12,10 @@ export class PatientController {
     return this.patientService.createPatient(createPatientDto);
   }
 
-  @Post('/:phone')
+  @Post('/one')
   updatePatient(
     @Body() updatePatientDto: UpdatePatientDto,
-    @Param('phone') phone: string,
+    @Query('phone') phone: string,
   ) {
     return this.patientService.updatePatient(phone, updatePatientDto);
   }
@@ -25,8 +25,8 @@ export class PatientController {
     return this.patientService.getPatientsBySeachText(searchString);
   }
 
-  @Get('/:phone')
-  getPatientByPhone(@Param('phone') phone: string) {
+  @Get()
+  getPatientByPhone(@Query('phone') phone: string) {
     return this.patientService.getPatientByPhone(phone);
   }
 }

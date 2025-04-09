@@ -3,14 +3,13 @@ import {
   Body,
   Controller,
   Get,
-  Param,
   Post,
   Query,
 } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-import { LockAppointmentDto } from './dto/lock-appointment.dto';
+import { LockMultipleAppointmentsDto } from './dto/lock-multiple-appointments.dto';
 
 @Controller('/v1/appointment')
 export class AppointmentController {
@@ -22,25 +21,29 @@ export class AppointmentController {
   }
 
   @Post('/lock')
-  lockAppointment(@Body() lockAppointmentDto: LockAppointmentDto) {
-    return this.appointmentService.lockAppointment(lockAppointmentDto);
+  lockMultipleAppointments(
+    @Body() lockMultipleAppointmentsDto: LockMultipleAppointmentsDto,
+  ) {
+    return this.appointmentService.lockMultipleAppointments(
+      lockMultipleAppointmentsDto.appointments,
+    );
   }
 
-  @Post('/:id')
+  @Post('/update')
   updateAppointment(
     @Body() updateAppointmentDto: UpdateAppointmentDto,
-    @Param('id') id: string,
+    @Query('id') id: string,
   ) {
     return this.appointmentService.updateAppointment(id, updateAppointmentDto);
   }
 
-  @Get('/:id')
-  getAppointment(@Param('id') id: string) {
+  @Get('/one')
+  getAppointment(@Query('id') id: string) {
     return this.appointmentService.getAppointment(id);
   }
 
   @Get('')
-  getDoctorAppointments(
+  getAppointments(
     @Query('date') date?: string,
     @Query('doctor') doctorId?: string,
     @Query('patient') patientId?: string,

@@ -4,6 +4,7 @@ import { Dfo } from './schemas/dfo.schema';
 import { Model } from 'mongoose';
 import { CreateDfoDto } from './dto/create-dfo.dto';
 import { dfoInitial } from 'src/common/constant';
+import { UpdateDfoDto } from './dto/update-dfo.dto';
 
 @Injectable()
 export class DfoService {
@@ -18,7 +19,7 @@ export class DfoService {
     }
   }
 
-  async addDfo(doctorId: string, updateDfo: object): Promise<string> {
+  async addDfo(doctorId: string, updateDfo: UpdateDfoDto): Promise<string> {
     const currentDfo = await this.dfoModel
       .findOne({ doctorId: doctorId })
       .exec();
@@ -26,12 +27,12 @@ export class DfoService {
       // new user adding dfo first time
       const createDfoDto = new CreateDfoDto(doctorId, {
         ...dfoInitial,
-        ...updateDfo,
+        ...updateDfo.dfo,
       });
       this.createDfo(createDfoDto);
       return `Updated successfully.`;
     } else {
-      const newDfoObject = { ...currentDfo.dfo, ...updateDfo };
+      const newDfoObject = { ...currentDfo.dfo, ...updateDfo.dfo };
       const addDfoDto = new CreateDfoDto(doctorId, newDfoObject);
       await this.dfoModel.findOneAndUpdate({ doctorId }, addDfoDto).exec();
       return `Updated successfully.`;
@@ -70,7 +71,7 @@ export class DfoService {
       }
 
       const dfo = currentDfo.dfo;
-      if (dfo[dfoKey]) {
+      if (dfoKey in dfo) {
         delete dfo[dfoKey];
         currentDfo.dfo = dfo;
         currentDfo.markModified('dfo');

@@ -6,10 +6,14 @@ import { CreateClinicDto } from './dto/create-clinic.dto';
 import { UpdateClinicDto } from './dto/update-clinic.dto';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
 import { EachDayInfo } from 'src/common/models/eachDayInfo.model';
+import { DfoService } from 'src/dfo/dfo.service';
 
 @Injectable()
 export class ClinicService {
-  constructor(@InjectModel(Clinic.name) private clinicModel: Model<Clinic>) {}
+  constructor(
+    @InjectModel(Clinic.name) private clinicModel: Model<Clinic>,
+    private readonly dfoService: DfoService,
+  ) {}
 
   async createClinic(createClinicDto: CreateClinicDto): Promise<Clinic> {
     const createdClinicSchema = new this.clinicModel(createClinicDto);
@@ -45,10 +49,10 @@ export class ClinicService {
     }
   }
 
-  async getClinic(doctorId: string, clinicId: string): Promise<Clinic> {
+  async getClinic(clinicId: string): Promise<Clinic> {
     try {
       const clinicDetails = await this.clinicModel
-        .findOne({ doctorId, _id: new Types.ObjectId(clinicId) })
+        .findOne({ _id: new Types.ObjectId(clinicId) })
         .exec();
       if (clinicDetails !== null) return clinicDetails;
       else return null;
@@ -70,13 +74,12 @@ export class ClinicService {
   }
 
   async updateClinic(
-    doctorId: string,
     clinicId: string,
     updateClinicDto: UpdateClinicDto,
   ): Promise<string> {
     // validations
     const currentClinic = await this.clinicModel
-      .findOne({ doctorId, _id: new Types.ObjectId(clinicId) })
+      .findOne({ _id: new Types.ObjectId(clinicId) })
       .exec();
 
     try {
@@ -113,10 +116,27 @@ export class ClinicService {
       }
       // update fee and followup related info if present
       if (updateClinicData?.feeFollowupPayload) {
+        let shouldDfoUpdate = false;
+        if (currentClinic.appointmentFee === 0) {
+          shouldDfoUpdate = true;
+        }
         currentClinic.appointmentFee =
           updateClinicData?.feeFollowupPayload?.appointmentFee;
         currentClinic.emergencyFee =
           updateClinicData?.feeFollowupPayload?.emergencyFee;
+
+        if (currentClinic.appointmentFee === 0) {
+          shouldDfoUpdate = true;
+        }
+
+        if (shouldDfoUpdate) {
+          const dfoObject = {
+            dfo: {
+              isClinicFeeSet: currentClinic.appointmentFee === 0 ? false : true,
+            },
+          };
+          this.dfoService.addDfo(currentClinic.doctorId, dfoObject);
+        }
         // currentClinic.followupDays =
         //   updateClinicData?.feeFollowupPayload?.followupDays;
         // currentClinic.followupFee =
@@ -124,6 +144,10 @@ export class ClinicService {
       }
       // update slot duration and timings if present
       if (updateClinicData?.timingPayload) {
+        let shouldDfoUpdate = false;
+        if (currentClinic.clinicTimingsNormal?.length === 0) {
+          shouldDfoUpdate = true;
+        }
         const normalTimings =
           updateClinicData.timingPayload.eachDayInfoNormal || [];
         const emergencyTimings =
@@ -177,6 +201,20 @@ export class ClinicService {
           updateClinicData.timingPayload.slotDurationEmergency;
         currentClinic.clinicTimingsEmergency =
           updateClinicData.timingPayload.eachDayInfoEmergency;
+
+        if (currentClinic.clinicTimingsNormal?.length === 0) {
+          shouldDfoUpdate = true;
+        }
+
+        if (shouldDfoUpdate) {
+          const dfoObject = {
+            dfo: {
+              isClinicTimingSet:
+                currentClinic.clinicTimingsNormal?.length === 0 ? false : true,
+            },
+          };
+          this.dfoService.addDfo(currentClinic.doctorId, dfoObject);
+        }
       }
       const updatedClinic = await currentClinic.save();
       return updatedClinic;
