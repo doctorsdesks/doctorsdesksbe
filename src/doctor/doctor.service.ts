@@ -44,11 +44,7 @@ export class DoctorService {
     return doctors;
   }
 
-  async findByCity(
-    city: string,
-    state: string,
-    pincode: string,
-  ): Promise<Array<Doctor>> {
+  async findByCity(city: string, pincode: string): Promise<Array<Doctor>> {
     try {
       const allDoctors = await this.findAll();
 
@@ -74,15 +70,11 @@ export class DoctorService {
             ? clinicAddress.city.toLowerCase() === city.toLowerCase()
             : true;
 
-          const stateMatches = state
-            ? clinicAddress.state.toLowerCase() === state.toLowerCase()
-            : true;
-
           const pincodeMatches = pincode
             ? clinicAddress.pincode === pincode
             : true;
 
-          return cityMatches || stateMatches || pincodeMatches;
+          return cityMatches || pincodeMatches;
         });
 
         if (hasMatchingClinic) {
@@ -94,6 +86,80 @@ export class DoctorService {
     } catch (error) {
       throw new HttpException(
         `Error finding doctors by city: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Find doctors by specialization and location (city or pincode)
+   * @param specialization Specialization to filter by
+   * @param city Optional city to filter by
+   * @param pincode Optional pincode to filter by
+   * @returns Array of doctors matching the criteria
+   */
+  async findBySpecialisationAndLocation(
+    specialisation: string,
+    city?: string,
+    pincode?: string,
+  ): Promise<Array<Doctor>> {
+    try {
+      // Get all doctors
+      const allDoctors = await this.findAll();
+
+      if (!allDoctors || allDoctors.length === 0) {
+        return [];
+      }
+
+      // Filter doctors by specialization
+      const doctorsBySpecialisation = specialisation
+        ? allDoctors.filter(
+            (doctor) =>
+              doctor.specialisation.toLowerCase() ===
+              specialisation.toLowerCase(),
+          )
+        : allDoctors;
+
+      if (doctorsBySpecialisation.length === 0 || (!city && !pincode)) {
+        return doctorsBySpecialisation;
+      }
+
+      // Filter doctors by city or pincode
+      const doctorsMap = new Map<string, Doctor>(); // Using Map to ensure uniqueness by phone
+
+      for (const doctor of doctorsBySpecialisation) {
+        const doctorClinics = await this.clinicService.getAllClinics(
+          doctor.phone,
+        );
+
+        if (!doctorClinics || doctorClinics.length === 0) {
+          continue;
+        }
+
+        const hasMatchingClinic = doctorClinics.some((clinic) => {
+          const clinicAddress = clinic.clinicAddress.address;
+
+          const cityMatches = city
+            ? clinicAddress.city.toLowerCase() === city.toLowerCase()
+            : false;
+
+          const pincodeMatches = pincode
+            ? clinicAddress.pincode === pincode
+            : false;
+
+          // Match if either city or pincode matches
+          return cityMatches || pincodeMatches;
+        });
+
+        if (hasMatchingClinic) {
+          doctorsMap.set(doctor.phone, doctor);
+        }
+      }
+
+      return Array.from(doctorsMap.values());
+    } catch (error) {
+      throw new HttpException(
+        `Error finding doctors by specialization and location: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -131,6 +197,36 @@ export class DoctorService {
       return updatedDoctor;
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Deletes a doctor by phone number
+   * @param phone Phone number of the doctor to delete
+   * @returns Object containing success status and message
+   */
+  async deleteDoctor(
+    phone: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await this.doctorModel.findOneAndDelete({ phone }).exec();
+
+      if (!result) {
+        return {
+          success: false,
+          message: `Doctor not found with phone ${phone}`,
+        };
+      }
+
+      return {
+        success: true,
+        message: `Doctor with phone ${phone} has been deleted successfully`,
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Error deleting doctor: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

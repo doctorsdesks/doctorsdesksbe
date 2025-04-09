@@ -34,7 +34,7 @@ export class UpdateDoctorDto {
   @IsNotEmpty()
   readonly experience: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   readonly specialisation: string;
 

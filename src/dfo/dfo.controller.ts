@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
@@ -20,9 +21,9 @@ import { CreateDfoDto } from './dto/create-dfo.dto';
 export class DfoController {
   constructor(private readonly dfoService: DfoService) {}
 
-  @Get('/:doctorId')
+  @Get()
   async getDfo(
-    @Param('doctorId') doctorId: string,
+    @Query('doctor') doctorId: string,
   ): Promise<CreateDfoDto | null> {
     return this.dfoService.getDfo(doctorId);
   }

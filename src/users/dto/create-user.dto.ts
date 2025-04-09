@@ -14,11 +14,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   readonly userType: UserType;
 
-  constructor(
-    phone: string,
-    password: string,
-    userType: UserType,
-  ) {
+  constructor(phone: string, password: string, userType: UserType) {
     this.phone = phone;
     this.password = password;
     this.userType = UserType[userType];

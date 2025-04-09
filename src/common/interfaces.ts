@@ -1,8 +1,10 @@
 import { EachDayInfo } from './models/eachDayInfo.model';
 
 export interface SlotTimings {
-  slotDuration: number;
-  eachDayInfo: EachDayInfo[];
+  slotDurationNormal: number;
+  eachDayInfoNormal: EachDayInfo[];
+  slotDurationEmergency: number;
+  eachDayInfoEmergency: EachDayInfo[];
 }
 
 export interface FeeFollowups {

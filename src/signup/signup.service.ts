@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { SignupDoctorDto } from './dto/signup-doctor.dto';
 import { CreateDoctorDto } from 'src/doctor/dto/create-doctor.dto';
 import { Gender, UserType } from 'src/common/enums';
@@ -23,31 +23,84 @@ export class SignupService {
   ) {}
 
   async signupDoctor(signupDoctorDto: SignupDoctorDto): Promise<Doctor> {
-    // add new user as doctor
-    const user = new CreateUserDto(
-      signupDoctorDto?.phone,
-      signupDoctorDto?.password,
-      UserType.DOCTOR,
-    );
-    const response = await this.userService.createUser(user);
-    if (response.status === 'Success') {
-      // add new Doctor document
-      const newDoctor = await this.createDoctor(signupDoctorDto);
-
-      const doctorId = newDoctor.phone;
-      console.info('doctorId for signup: ', doctorId);
-
-      // add new Clinic document of that docId
-      const newClinic = await this.createClinic(signupDoctorDto, doctorId);
-      console.info(
-        `${newDoctor.name}, your doctor account has been created successfully with clinic ${newClinic.clinicAddress.clinicName}`,
+    try {
+      // Step 1: Create a user
+      const user = new CreateUserDto(
+        signupDoctorDto?.phone,
+        signupDoctorDto?.password,
+        UserType.DOCTOR,
       );
+      const userResponse = await this.userService.createUser(user);
 
-      // create a dfo for this doctor with { isClinicTimingSet: false, isClinicFeeSet: false }
-      const createDfoDto = new CreateDfoDto(doctorId, dfoInitial);
-      this.dfoService.createDfo(createDfoDto);
+      if (userResponse.status !== 'Success') {
+        console.error('Failed to create user account:', userResponse);
+        throw new HttpException(
+          'Failed to create user account',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
-      return newDoctor;
+      try {
+        // Step 2: Create a doctor
+        const newDoctor = await this.createDoctor(signupDoctorDto);
+        const doctorId = newDoctor.phone;
+        console.info('doctorId for signup: ', doctorId);
+
+        try {
+          // Step 3: Create a clinic
+          const newClinic = await this.createClinic(signupDoctorDto, doctorId);
+          console.info(
+            `${newDoctor.name}, your doctor account has been created successfully with clinic ${newClinic.clinicAddress.clinicName}`,
+          );
+
+          try {
+            // Step 4: Create a DFO
+            const createDfoDto = new CreateDfoDto(doctorId, dfoInitial);
+            await this.dfoService.createDfo(createDfoDto);
+
+            return newDoctor;
+          } catch (dfoError) {
+            // Rollback: Delete clinic
+            console.error('Error creating DFO, rolling back:', dfoError);
+            await this.clinicService.deleteClinic(
+              doctorId,
+              newClinic._id.toString(),
+            );
+
+            // Rollback: Delete doctor
+            await this.doctorService.deleteDoctor(doctorId);
+
+            // Rollback: Delete user
+            await this.userService.deleteUser(doctorId, UserType.DOCTOR);
+
+            throw dfoError;
+          }
+        } catch (clinicError) {
+          // Rollback: Delete doctor
+          console.error('Error creating clinic, rolling back:', clinicError);
+          await this.doctorService.deleteDoctor(doctorId);
+
+          // Rollback: Delete user
+          await this.userService.deleteUser(doctorId, UserType.DOCTOR);
+
+          throw clinicError;
+        }
+      } catch (doctorError) {
+        // Rollback: Delete user
+        console.error('Error creating doctor, rolling back:', doctorError);
+        await this.userService.deleteUser(
+          signupDoctorDto.phone,
+          UserType.DOCTOR,
+        );
+
+        throw doctorError;
+      }
+    } catch (error) {
+      console.error('Error in doctor signup process:', error);
+      throw new HttpException(
+        'Error in doctor signup process',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 

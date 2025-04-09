@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule as NestConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { DoctorModule } from './doctor/doctor.module';
@@ -25,11 +25,13 @@ import { AppointmentController } from './appointment/appointment.controller';
 import { UserModule } from './users/user.module';
 import { SlotsModule } from './slots/slots.module';
 import { SlotsController } from './slots/slots.controller';
+import { ConfigModule } from './config/config.module';
+import { ConfigController } from './config/config.controller';
 
 @Module({
   imports: [
     DatabaseModule,
-    ConfigModule.forRoot({
+    NestConfigModule.forRoot({
       isGlobal: true, // Make it global so you can access it in any module
     }),
     DoctorModule,
@@ -42,6 +44,7 @@ import { SlotsController } from './slots/slots.controller';
     AppointmentModule,
     TranslationModule,
     SlotsModule,
+    ConfigModule,
   ],
   controllers: [
     AppController,
@@ -53,6 +56,7 @@ import { SlotsController } from './slots/slots.controller';
     AppointmentController,
     TranslationController,
     SlotsController,
+    ConfigController,
   ],
   providers: [
     AppService,

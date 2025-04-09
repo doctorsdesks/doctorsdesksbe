@@ -1,7 +1,7 @@
 import {
   Controller,
   Get,
-  Param,
+  Query,
   UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
@@ -15,10 +15,10 @@ import { SlotsService } from './slots.service';
 export class SlotsController {
   constructor(private readonly slotsService: SlotsService) {}
 
-  @Get('/:clinicId/:date')
+  @Get()
   getClinicSlots(
-    @Param('clinicId') clinicId: string,
-    @Param('date') date: string,
+    @Query('clinic') clinicId: string,
+    @Query('date') date: string,
   ) {
     return this.slotsService.getClinicSlots(clinicId, date);
   }

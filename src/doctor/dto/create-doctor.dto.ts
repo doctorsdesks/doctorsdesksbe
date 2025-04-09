@@ -72,7 +72,7 @@ export class CreateDoctorDto {
   @IsNotEmpty()
   readonly graduationYear: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   readonly specialisation: string;
 

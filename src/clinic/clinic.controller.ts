@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
@@ -20,32 +21,22 @@ import { CreateClinicDto } from './dto/create-clinic.dto';
 export class ClinicController {
   constructor(private readonly clinicService: ClinicService) {}
 
-  @Get('/:doctorId')
-  getAllClinics(@Param('doctorId') doctorId: string) {
+  @Get('/all')
+  getAllClinics(@Query('doctor') doctorId: string) {
     return this.clinicService.getAllClinics(doctorId);
   }
 
-  @Get('/:doctorId/:clinicId')
-  getClinic(
-    @Param('doctorId') doctorId: string,
-    @Param('clinicId') clinicId: string,
-  ) {
-    return this.clinicService.getClinic(doctorId, clinicId);
+  @Get('/one')
+  getClinic(@Query('clinic') clinicId: string) {
+    return this.clinicService.getClinic(clinicId);
   }
 
-  @Post('/update/:doctorId/:clinicId')
+  @Post('/one/:clinicId')
   updateClinic(
     @Body() updateClinicDto: UpdateClinicDto,
-    @Param('doctorId') doctorId: string,
     @Param('clinicId') clinicId: string,
   ) {
-    console.log(
-      'Update Clinic with data: ',
-      doctorId,
-      clinicId,
-      updateClinicDto,
-    );
-    return this.clinicService.updateClinic(doctorId, clinicId, updateClinicDto);
+    return this.clinicService.updateClinic(clinicId, updateClinicDto);
   }
 
   @Post('/add/:doctorId')

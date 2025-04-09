@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { LoginUserDto } from './dto/login-user.dto';
+import { UserType } from 'src/common/enums';
 
 @Controller('/v1/user')
 export class UserController {
@@ -8,11 +9,16 @@ export class UserController {
 
   @Get('/patient/:phone')
   getUserAsPatient(@Param('phone') phone: string) {
-    return this.userService.getUserAsPatient(phone);
+    return this.userService.getUser(phone, UserType.PATIENT);
   }
 
-  @Post('/patientLogin')
-  async loginPatient(@Body() loginUserDto: LoginUserDto) {
-    return this.userService.loginPatient(loginUserDto);
+  @Get('/doctor/:phone')
+  getUserAsDoctor(@Param('phone') phone: string) {
+    return this.userService.getUser(phone, UserType.DOCTOR);
+  }
+
+  @Post('/login')
+  async login(@Body() loginUserDto: LoginUserDto) {
+    return this.userService.login(loginUserDto);
   }
 }

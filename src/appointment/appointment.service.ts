@@ -28,10 +28,59 @@ export class AppointmentService {
     private readonly doctorService: DoctorService,
   ) {}
 
+  /**
+   * Validates that the appointment date and time are in the future
+   * @param date Appointment date in YYYY-MM-DD format
+   * @param startTime Appointment start time in HH:MM format
+   * @throws HttpException if the appointment date or time is in the past
+   */
+  private validateAppointmentDateTime(date: string, startTime: string): void {
+    // Validate appointment date and time
+    const appointmentDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to beginning of day for date comparison
+
+    // Check if appointment date is in the past
+    if (appointmentDate < today) {
+      throw new HttpException(
+        'Cannot book appointment for past dates',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // If appointment is for today, check if the time is in the past
+    if (appointmentDate.getTime() === today.getTime()) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      const [appointmentHour, appointmentMinute] = startTime
+        .split(':')
+        .map(Number);
+
+      // Check if appointment time is in the past
+      if (
+        appointmentHour < currentHour ||
+        (appointmentHour === currentHour && appointmentMinute <= currentMinute)
+      ) {
+        throw new HttpException(
+          'Cannot book appointment for past time',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+  }
+
   async createAppointment(
     createAppointmentDto: CreateAppointmentDto,
   ): Promise<Appointment> {
     try {
+      // Validate appointment date and time
+      this.validateAppointmentDateTime(
+        createAppointmentDto.date,
+        createAppointmentDto.startTime,
+      );
+
       let appointmentModelObject: any = {
         doctorId: createAppointmentDto?.doctorId,
         patientId: createAppointmentDto?.patientId,
@@ -101,6 +150,7 @@ export class AppointmentService {
     date: string,
     doctorId?: string,
     patientId?: string,
+    allAppointment?: boolean,
   ): Promise<any[]> {
     try {
       if (!doctorId && !patientId) {
@@ -117,7 +167,12 @@ export class AppointmentService {
           HttpStatus.NOT_FOUND,
         );
       }
-      const sortedAppointments = appointments.sort((a, b) => {
+      const realAppointments = allAppointment
+        ? appointments
+        : appointments?.filter(
+            (appointment: Appointment) => !appointment.isLockedByDoctor,
+          );
+      const sortedAppointments = realAppointments.sort((a, b) => {
         const timeToMinutes = (time) => {
           const [hours, minutes] = time.split(':').map(Number);
           return hours * 60 + minutes;
@@ -131,39 +186,98 @@ export class AppointmentService {
     }
   }
 
-  async lockAppointment(
-    lockAppointmentDto: LockAppointmentDto,
-  ): Promise<Appointment> {
+  /**
+   * Lock multiple appointment slots at once
+   * @param lockAppointmentDtos Array of LockAppointmentDto objects
+   * @returns Array of created appointments
+   */
+  async lockMultipleAppointments(
+    lockAppointmentDtos: LockAppointmentDto[],
+  ): Promise<Appointment[]> {
     try {
-      // Create appointment object with required fields
-      const appointmentModelObject: any = {
-        doctorId: lockAppointmentDto.doctorId,
-        patientId: lockAppointmentDto.doctorId, // Using doctorId as patientId as per requirement
-        date: lockAppointmentDto.date,
-        startTime: lockAppointmentDto.startTime,
-        endTime: lockAppointmentDto.endTime,
-        appointmentType: AppointmentType.OPD, // Default to OPD
-        status: AppointmentStatus.ACCEPTED, // Auto-accept since it's created by doctor
-        createdBy: AppointmentByType.DOCTOR,
-        isLockedByDoctor: lockAppointmentDto.isLockedByDoctor || true, // Default to true if not provided
-      };
+      // First validate all appointments
+      const invalidAppointments = [];
 
-      // Get doctor info
-      const doctorInfo = await this.doctorService.findByPhone(
-        lockAppointmentDto.doctorId,
-      );
+      // Validate all appointments first
+      for (const lockAppointmentDto of lockAppointmentDtos) {
+        try {
+          this.validateAppointmentDateTime(
+            lockAppointmentDto.date,
+            lockAppointmentDto.startTime,
+          );
+        } catch (error) {
+          invalidAppointments.push({
+            appointment: lockAppointmentDto,
+            error: error.message,
+          });
+        }
+      }
 
-      // Add doctor info to appointment
-      appointmentModelObject.doctorName = doctorInfo?.name;
-      appointmentModelObject.patientName = doctorInfo?.name; // Same as doctor since patientId is doctorId
+      // If any appointments are invalid, throw an error with details
+      if (invalidAppointments.length > 0) {
+        const errorMessages = invalidAppointments.map(
+          (item) =>
+            `Appointment ${item.appointment.date} ${item.appointment.startTime}-${item.appointment.endTime}: ${item.error}`,
+        );
+        throw new HttpException(
+          `Cannot lock appointments with invalid dates/times: ${errorMessages.join(', ')}`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
-      // Create and save the appointment
-      const appointment = new this.appointmentModel(appointmentModelObject);
-      const createdAppointment = await appointment.save();
-      return createdAppointment;
+      // All appointments are valid, now create them
+      const createdAppointments: Appointment[] = [];
+      let doctorInfo = null;
+
+      // Process each appointment in the array
+      for (const lockAppointmentDto of lockAppointmentDtos) {
+        // Create appointment object with required fields
+        const appointmentModelObject: any = {
+          doctorId: lockAppointmentDto.doctorId,
+          patientId: lockAppointmentDto.doctorId, // Using doctorId as patientId as per requirement
+          date: lockAppointmentDto.date,
+          startTime: lockAppointmentDto.startTime,
+          endTime: lockAppointmentDto.endTime,
+          appointmentType: AppointmentType.OPD, // Default to OPD
+          status: AppointmentStatus.ACCEPTED, // Auto-accept since it's created by doctor
+          createdBy: AppointmentByType.DOCTOR,
+          isLockedByDoctor: lockAppointmentDto.isLockedByDoctor || true, // Default to true if not provided
+        };
+
+        // Get doctor info (only once if all appointments have the same doctorId)
+        if (
+          !doctorInfo ||
+          doctorInfo.doctorId !== lockAppointmentDto.doctorId
+        ) {
+          const doctorData = await this.doctorService.findByPhone(
+            lockAppointmentDto.doctorId,
+          );
+          doctorInfo = {
+            doctorId: lockAppointmentDto.doctorId,
+            name: doctorData?.name,
+          };
+        }
+
+        // Add doctor info to appointment
+        appointmentModelObject.doctorName = doctorInfo.name;
+        appointmentModelObject.patientName = doctorInfo.name; // Same as doctor since patientId is doctorId
+
+        // Create and save the appointment
+        const appointment = new this.appointmentModel(appointmentModelObject);
+        const createdAppointment = await appointment.save();
+        createdAppointments.push(createdAppointment);
+      }
+
+      return createdAppointments;
     } catch (error) {
+      // If it's already an HttpException, rethrow it
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      // Otherwise, wrap it in an HttpException
       throw new HttpException(
-        `Error creating locked appointment: ${error.message}`,
+        `Error locking multiple appointments: ${error.message}`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -208,7 +322,7 @@ export class AppointmentService {
             currentAppointment.status = AppointmentStatus.CANCELLED;
             const reasonForCancel: string =
               updateAppointmentDto?.reasonForCancel || '';
-            if (reasonForCancel !== '') {
+            if (reasonForCancel === '') {
               throw new HttpException(
                 `Please provide a valid reason for cancelling.`,
                 HttpStatus.BAD_REQUEST,
