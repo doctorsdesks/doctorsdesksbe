@@ -190,10 +190,15 @@ export class SlotsService {
           appointment.startTime === formattedStartTime &&
           appointment.endTime === formattedEndTime
         ) {
-          // If appointment exists for this exact time slot
-          slotStatus = appointment.isLockedByDoctor
-            ? SlotStatus.LOCKED
-            : SlotStatus.BOOKED;
+          // If appointment is cancelled, keep slot as OPEN
+          if (appointment.status === 'CANCELLED') {
+            slotStatus = SlotStatus.OPEN;
+          } else {
+            // If appointment exists for this exact time slot and is not cancelled
+            slotStatus = appointment.isLockedByDoctor
+              ? SlotStatus.LOCKED
+              : SlotStatus.BOOKED;
+          }
 
           detailedSlot.slotStatus = slotStatus;
 
@@ -208,7 +213,7 @@ export class SlotsService {
           // Add locked information if it's locked
           if (
             slotStatus === SlotStatus.LOCKED ||
-            appointment.isLockedByDoctor
+            (appointment.isLockedByDoctor && appointment.status !== 'CANCELLED')
           ) {
             detailedSlot.isLockedByDoctor = appointment.isLockedByDoctor;
           }
