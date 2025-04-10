@@ -11,6 +11,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UserType } from 'src/common/enums';
 import * as bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface CreateResponse {
   status: string;
@@ -28,7 +29,13 @@ export interface LoginResponse {
   user?: {
     phone: string;
     userType: UserType;
+    authToken?: string;
   };
+}
+
+export interface LogoutResponse {
+  success: boolean;
+  message: string;
 }
 
 @Injectable()
@@ -115,17 +122,84 @@ export class UserService {
         };
       }
 
+      // Generate a new auth token
+      const authToken = uuidv4();
+
+      // Update user with auth token and lastLoggedIn date
+      user.authToken = authToken;
+      user.lastLoggedIn = new Date();
+      user.isLoggedIn = true;
+      await user.save();
+
       return {
         success: true,
         message: 'Login successful',
         user: {
           phone: user.phone,
           userType: UserType[user.userType],
+          authToken: authToken,
         },
       };
     } catch (error) {
       throw new HttpException(
         `Error during login: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Validates an auth token
+   * @param authToken The auth token to validate
+   * @returns True if the token is valid and the user is logged in, false otherwise
+   */
+  async validateAuthToken(authToken: string): Promise<boolean> {
+    try {
+      const user = await this.userModel
+        .findOne({ authToken: authToken, isLoggedIn: true })
+        .exec();
+
+      return !!user; // Return true if user exists, false otherwise
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Logs out a user by clearing their auth token and updating lastLoggedOut
+   * @param phone Phone number of the user
+   * @param type User type (PATIENT, DOCTOR, etc.)
+   * @returns Object containing success status and message
+   */
+  async logout(phone: string, type: UserType): Promise<LogoutResponse> {
+    try {
+      const user = await this.userModel
+        .findOne({
+          phone: phone,
+          userType: type,
+        })
+        .exec();
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+        };
+      }
+
+      // Update user with empty auth token and lastLoggedOut date
+      user.authToken = '';
+      user.lastLoggedOut = new Date();
+      user.isLoggedIn = false;
+      await user.save();
+
+      return {
+        success: true,
+        message: 'Logout successful',
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Error during logout: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

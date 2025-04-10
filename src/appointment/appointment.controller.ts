@@ -5,13 +5,19 @@ import {
   Get,
   Post,
   Query,
+  UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { LockMultipleAppointmentsDto } from './dto/lock-multiple-appointments.dto';
+import { RequestHeaderInterceptor } from 'src/common/interceptors/request-header.interceptor';
+import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 @Controller('/v1/appointment')
+@UseInterceptors(RequestHeaderInterceptor)
+@UseFilters(HttpExceptionFilter)
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 

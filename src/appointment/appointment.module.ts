@@ -5,6 +5,7 @@ import { AppointmentService } from './appointment.service';
 import { Appointment, AppointmentSchema } from './schemas/appointment.schema';
 import { PatientModule } from 'src/patient/patient.module';
 import { DoctorModule } from 'src/doctor/doctor.module';
+import { UserModule } from 'src/users/user.module';
 
 @Module({
   controllers: [AppointmentController],
@@ -15,6 +16,7 @@ import { DoctorModule } from 'src/doctor/doctor.module';
     ]),
     PatientModule,
     DoctorModule,
+    UserModule,
   ],
   exports: [AppointmentService],
 })

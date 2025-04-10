@@ -4,11 +4,13 @@ import { Doctor, DoctorSchema } from './schemas/doctor.schema';
 import { DoctorService } from './doctor.service';
 import { DoctorController } from './doctor.controller';
 import { ClinicModule } from 'src/clinic/clinic.module';
+import { UserModule } from 'src/users/user.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Doctor.name, schema: DoctorSchema }]),
     ClinicModule,
+    UserModule,
   ],
   exports: [DoctorService],
   providers: [DoctorService],

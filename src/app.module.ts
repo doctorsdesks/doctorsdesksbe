@@ -5,6 +5,7 @@ import { DatabaseModule } from './database/database.module';
 import { ConfigModule as NestConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { InterceptorsModule } from './common/interceptors/interceptors.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { SignupController } from './signup/signup.controller';
 import { SignupService } from './signup/signup.service';
@@ -34,6 +35,7 @@ import { ConfigController } from './config/config.controller';
     NestConfigModule.forRoot({
       isGlobal: true, // Make it global so you can access it in any module
     }),
+    InterceptorsModule,
     DoctorModule,
     SignupModule,
     ClinicModule,
