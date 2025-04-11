@@ -14,6 +14,7 @@ import {
   AppointmentType,
   AppointmentUpdateType,
   OPDAppointmentType,
+  PatientType,
 } from 'src/common/enums';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { LockAppointmentDto } from './dto/lock-appointment.dto';
@@ -71,6 +72,50 @@ export class AppointmentService {
     }
   }
 
+  /**
+   * Check if the requested appointment slot is available
+   * @param doctorId Doctor's phone number
+   * @param date Appointment date in YYYY-MM-DD format
+   * @param startTime Appointment start time in HH:MM format
+   * @param endTime Appointment end time in HH:MM format
+   * @returns true if the slot is available, false if it's already booked
+   */
+  private async isSlotAvailable(
+    doctorId: string,
+    date: string,
+    startTime: string,
+    endTime: string,
+  ): Promise<boolean> {
+    // Find any appointments for the doctor on the same day and time slot
+    const conflictingAppointments = await this.appointmentModel
+      .find({
+        doctorId: doctorId,
+        date: date,
+        $or: [
+          // Case 1: New appointment starts during an existing appointment
+          {
+            startTime: { $lte: startTime },
+            endTime: { $gt: startTime },
+          },
+          // Case 2: New appointment ends during an existing appointment
+          {
+            startTime: { $lt: endTime },
+            endTime: { $gte: endTime },
+          },
+          // Case 3: New appointment completely contains an existing appointment
+          {
+            startTime: { $gte: startTime },
+            endTime: { $lte: endTime },
+          },
+        ],
+        status: { $ne: AppointmentStatus.CANCELLED }, // Ignore cancelled appointments
+      })
+      .exec();
+
+    // If there are any conflicting appointments, the slot is not available
+    return conflictingAppointments.length === 0;
+  }
+
   async createAppointment(
     createAppointmentDto: CreateAppointmentDto,
   ): Promise<Appointment> {
@@ -80,6 +125,21 @@ export class AppointmentService {
         createAppointmentDto.date,
         createAppointmentDto.startTime,
       );
+
+      // Check if the requested slot is available
+      const isAvailable = await this.isSlotAvailable(
+        createAppointmentDto.doctorId,
+        createAppointmentDto.date,
+        createAppointmentDto.startTime,
+        createAppointmentDto.endTime,
+      );
+
+      if (!isAvailable) {
+        throw new HttpException(
+          'The requested appointment slot is already booked. Please choose a different time.',
+          HttpStatus.CONFLICT,
+        );
+      }
 
       let appointmentModelObject: any = {
         doctorId: createAppointmentDto?.doctorId,
@@ -119,12 +179,14 @@ export class AppointmentService {
       const doctorInfo = await this.doctorService.findByPhone(
         createAppointmentDto?.doctorId,
       );
+
       appointmentModelObject = {
         ...appointmentModelObject,
         patientImageUrl: patientInfo?.imageUrl,
         patientName: patientInfo?.name,
         doctorImageUrl: doctorInfo?.imageUrl,
         doctorName: doctorInfo?.name,
+        appointmentPatientType: patientInfo?.type || PatientType.PRIMARY,
       };
       const appointment = new this.appointmentModel(appointmentModelObject);
       const createdApppointment = await appointment.save();
@@ -229,6 +291,31 @@ export class AppointmentService {
       const createdAppointments: Appointment[] = [];
       let doctorInfo = null;
 
+      // Check slot availability for all appointments
+      const unavailableSlots = [];
+      for (const lockAppointmentDto of lockAppointmentDtos) {
+        const isAvailable = await this.isSlotAvailable(
+          lockAppointmentDto.doctorId,
+          lockAppointmentDto.date,
+          lockAppointmentDto.startTime,
+          lockAppointmentDto.endTime,
+        );
+
+        if (!isAvailable) {
+          unavailableSlots.push(
+            `${lockAppointmentDto.date} ${lockAppointmentDto.startTime}-${lockAppointmentDto.endTime}`,
+          );
+        }
+      }
+
+      // If any slots are unavailable, throw an error
+      if (unavailableSlots.length > 0) {
+        throw new HttpException(
+          `Cannot lock appointments. The following slots are already booked: ${unavailableSlots.join(', ')}`,
+          HttpStatus.CONFLICT,
+        );
+      }
+
       // Process each appointment in the array
       for (const lockAppointmentDto of lockAppointmentDtos) {
         // Create appointment object with required fields
@@ -242,6 +329,7 @@ export class AppointmentService {
           status: AppointmentStatus.ACCEPTED, // Auto-accept since it's created by doctor
           createdBy: AppointmentByType.DOCTOR,
           isLockedByDoctor: lockAppointmentDto.isLockedByDoctor || true, // Default to true if not provided
+          appointmentPatientType: PatientType.PRIMARY,
         };
 
         // Get doctor info (only once if all appointments have the same doctorId)

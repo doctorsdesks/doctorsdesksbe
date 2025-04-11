@@ -5,6 +5,7 @@ import {
   AppointmentStatus,
   AppointmentType,
   OPDAppointmentType,
+  PatientType,
 } from 'src/common/enums';
 
 @Schema({ timestamps: true }) // Enable timestamps
@@ -71,6 +72,13 @@ export class Appointment extends Document {
 
   @Prop({ type: Boolean, default: false })
   isLockedByDoctor: boolean;
+
+  @Prop({
+    type: String,
+    enum: Object.values(PatientType),
+    default: PatientType.PRIMARY,
+  })
+  appointmentPatientType: string;
 
   // createAt and updatedAt will be added automatically by mongo.
 }

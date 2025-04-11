@@ -1,9 +1,19 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Gender } from 'src/common/enums';
+import { Gender, PatientType } from 'src/common/enums';
 
 @Schema({ timestamps: true }) // Enable timestamps
 export class Patient extends Document {
+  @Prop({
+    type: String,
+    enum: Object.values(PatientType),
+    default: PatientType.PRIMARY,
+  })
+  type: string;
+
+  @Prop({ type: String, default: null })
+  familyMemberOf: string;
+
   @Prop({ type: String, required: true, index: true, unique: true })
   phone: string;
 
