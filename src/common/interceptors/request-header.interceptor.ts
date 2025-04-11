@@ -31,7 +31,8 @@ export class RequestHeaderInterceptor implements NestInterceptor {
       path === '/v1/user/login' ||
       path === '/v1/translations' ||
       path === '/v1/user/patient/:phone' ||
-      path === '/v1/user/doctor/:phone'
+      path === '/v1/user/doctor/:phone' ||
+      path === '/v1/config'
     ) {
       return next.handle();
     }
