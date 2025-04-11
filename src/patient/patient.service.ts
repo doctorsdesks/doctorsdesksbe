@@ -3,13 +3,15 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Patient } from './schemas/patient.schema';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { Gender, UserType } from 'src/common/enums';
+import { AddFamilyMemberDto } from './dto/add-family-member.dto';
+import { Gender, PatientType, UserType } from 'src/common/enums';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UserService } from 'src/users/user.service';
 
@@ -17,6 +19,7 @@ export interface PatientSearchResult {
   name: string;
   phone: string;
   age: string;
+  type: string;
 }
 
 export interface PatientInfoResult {
@@ -32,6 +35,8 @@ export interface PatientInfoResult {
   state: string;
   pincode: string;
   age: string;
+  type: string;
+  familyMemberOf: string;
 }
 
 @Injectable()
@@ -101,6 +106,8 @@ export class PatientService {
         state: patient.state,
         pincode: patient.pincode,
         age: this.calculateAge(patient.dob).toString(),
+        type: patient.type || PatientType.PRIMARY,
+        familyMemberOf: patient.familyMemberOf || null,
       };
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
@@ -164,12 +171,104 @@ export class PatientService {
         })
         .exec();
 
-      // Transform the results to include calculated age
+      // Transform the results to include calculated age and patient type
       return patients.map((patient) => {
         return {
           name: patient.name,
           phone: patient.phone,
           age: this.calculateAge(patient.dob).toString(),
+          type: patient.type || PatientType.PRIMARY,
+        };
+      });
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async addFamilyMember(
+    addFamilyMemberDto: AddFamilyMemberDto,
+  ): Promise<Patient> {
+    try {
+      // Check if primary patient exists
+      const primaryPatient = await this.patientModel
+        .findOne({ phone: addFamilyMemberDto.primaryPatient })
+        .exec();
+
+      if (!primaryPatient) {
+        throw new NotFoundException(
+          `Primary patient with phone ${addFamilyMemberDto.primaryPatient} not found`,
+        );
+      }
+
+      // Create the family member patient
+      const dob = new Date(addFamilyMemberDto.dob);
+      const familyMember = new this.patientModel({
+        phone: addFamilyMemberDto.phone,
+        imageUrl: addFamilyMemberDto.imageUrl || '',
+        name: addFamilyMemberDto.name,
+        gender: addFamilyMemberDto.gender,
+        dob: dob,
+        bloodGroup: addFamilyMemberDto.bloodGroup || '',
+        alternatePhone: addFamilyMemberDto.alternatePhone || '',
+        maritalStatus: addFamilyMemberDto.maritalStatus || '',
+        emailId: addFamilyMemberDto.emailId || '',
+        city: addFamilyMemberDto.city,
+        state: addFamilyMemberDto.state,
+        pincode: addFamilyMemberDto.pincode,
+        type: PatientType.FAMILY_MEMBER,
+        familyMemberOf: addFamilyMemberDto.primaryPatient,
+      });
+
+      const createdFamilyMember = await familyMember.save();
+      return createdFamilyMember;
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new ConflictException(
+          `Patient is already registered with phone ${addFamilyMemberDto.phone}`,
+        );
+      }
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getFamilyMembers(primaryPatient: string): Promise<PatientInfoResult[]> {
+    try {
+      // Check if primary patient exists
+      const primaryPatientExists = await this.patientModel
+        .findOne({ phone: primaryPatient })
+        .exec();
+
+      if (!primaryPatientExists) {
+        throw new NotFoundException(
+          `Primary patient with phone ${primaryPatient} not found`,
+        );
+      }
+
+      // Find all family members for this primary patient
+      const familyMembers = await this.patientModel
+        .find({
+          familyMemberOf: primaryPatient,
+          type: PatientType.FAMILY_MEMBER,
+        })
+        .exec();
+
+      // Transform the results to include calculated age
+      return familyMembers.map((patient) => {
+        return {
+          phone: patient.phone,
+          imageUrl: patient.imageUrl,
+          name: patient.name,
+          gender: Gender[patient.gender],
+          bloodGroup: patient.bloodGroup,
+          alternatePhone: patient.alternatePhone,
+          maritalStatus: patient.maritalStatus,
+          emailId: patient.emailId,
+          city: patient.city,
+          state: patient.state,
+          pincode: patient.pincode,
+          age: this.calculateAge(patient.dob).toString(),
+          type: patient.type,
+          familyMemberOf: patient.familyMemberOf,
         };
       });
     } catch (error) {

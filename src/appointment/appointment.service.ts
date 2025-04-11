@@ -14,6 +14,7 @@ import {
   AppointmentType,
   AppointmentUpdateType,
   OPDAppointmentType,
+  PatientType,
 } from 'src/common/enums';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { LockAppointmentDto } from './dto/lock-appointment.dto';
@@ -119,12 +120,14 @@ export class AppointmentService {
       const doctorInfo = await this.doctorService.findByPhone(
         createAppointmentDto?.doctorId,
       );
+
       appointmentModelObject = {
         ...appointmentModelObject,
         patientImageUrl: patientInfo?.imageUrl,
         patientName: patientInfo?.name,
         doctorImageUrl: doctorInfo?.imageUrl,
         doctorName: doctorInfo?.name,
+        appointmentPatientType: patientInfo?.type || PatientType.PRIMARY,
       };
       const appointment = new this.appointmentModel(appointmentModelObject);
       const createdApppointment = await appointment.save();
@@ -242,6 +245,7 @@ export class AppointmentService {
           status: AppointmentStatus.ACCEPTED, // Auto-accept since it's created by doctor
           createdBy: AppointmentByType.DOCTOR,
           isLockedByDoctor: lockAppointmentDto.isLockedByDoctor || true, // Default to true if not provided
+          appointmentPatientType: PatientType.PRIMARY,
         };
 
         // Get doctor info (only once if all appointments have the same doctorId)

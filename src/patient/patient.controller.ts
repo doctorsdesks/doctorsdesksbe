@@ -11,6 +11,7 @@ import {
 import { PatientService } from './patient.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
+import { AddFamilyMemberDto } from './dto/add-family-member.dto';
 import { RequestHeaderInterceptor } from 'src/common/interceptors/request-header.interceptor';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
@@ -41,5 +42,15 @@ export class PatientController {
   @Get()
   getPatientByPhone(@Query('phone') phone: string) {
     return this.patientService.getPatientByPhone(phone);
+  }
+
+  @Post('/family-member')
+  addFamilyMember(@Body() addFamilyMemberDto: AddFamilyMemberDto) {
+    return this.patientService.addFamilyMember(addFamilyMemberDto);
+  }
+
+  @Get('/family-members')
+  getFamilyMembers(@Query('patient') patient: string) {
+    return this.patientService.getFamilyMembers(patient);
   }
 }
