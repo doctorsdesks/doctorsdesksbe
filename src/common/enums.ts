@@ -71,3 +71,15 @@ export enum AppointmentUpdateType {
   COMPLETE = 'COMPLETE',
   CANCEL = 'CANCEL',
 }
+
+export enum BannerType {
+  APP_UPDATE = 'APP_UPDATE',
+  NOT_VERIFIED = 'NOT_VERIFIED',
+  DEFAULT = 'DEFAULT',
+}
+
+export enum ButtonType {
+  PRIMARY = 'PRIMARY',
+  SECONDARY = 'SECONDARY',
+  TERTIARY = 'TERTIARY',
+}

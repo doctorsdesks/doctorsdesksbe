@@ -28,6 +28,8 @@ import { SlotsModule } from './slots/slots.module';
 import { SlotsController } from './slots/slots.controller';
 import { ConfigModule } from './config/config.module';
 import { ConfigController } from './config/config.controller';
+import { BannerModule } from './banner/banner.module';
+import { BannerController } from './banner/banner.controller';
 
 @Module({
   imports: [
@@ -47,6 +49,7 @@ import { ConfigController } from './config/config.controller';
     TranslationModule,
     SlotsModule,
     ConfigModule,
+    BannerModule,
   ],
   controllers: [
     AppController,
@@ -59,6 +62,7 @@ import { ConfigController } from './config/config.controller';
     TranslationController,
     SlotsController,
     ConfigController,
+    BannerController,
   ],
   providers: [
     AppService,
