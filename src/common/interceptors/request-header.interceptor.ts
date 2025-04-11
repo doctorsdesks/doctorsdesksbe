@@ -27,7 +27,12 @@ export class RequestHeaderInterceptor implements NestInterceptor {
     }
 
     // Skip auth token check for login endpoint
-    if (path === '/v1/user/login' || path === '/v1/translations') {
+    if (
+      path === '/v1/user/login' ||
+      path === '/v1/translations' ||
+      path === '/v1/user/patient/:phone' ||
+      path === '/v1/user/doctor/:phone'
+    ) {
       return next.handle();
     }
 
