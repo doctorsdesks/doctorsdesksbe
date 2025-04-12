@@ -21,12 +21,12 @@ import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
-  @Post()
+  @Post('/signup')
   createPatient(@Body() createPatientDto: CreatePatientDto) {
     return this.patientService.createPatient(createPatientDto);
   }
 
-  @Post('/one')
+  @Post('/update')
   updatePatient(
     @Body() updatePatientDto: UpdatePatientDto,
     @Query('phone') phone: string,

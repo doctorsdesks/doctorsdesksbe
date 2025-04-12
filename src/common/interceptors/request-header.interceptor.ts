@@ -26,13 +26,15 @@ export class RequestHeaderInterceptor implements NestInterceptor {
       throw new BadRequestException('Request not from a valid source.');
     }
 
-    // Skip auth token check for login endpoint
+    // Skip auth token check for login endpoint and other public endpoints
     if (
       path === '/v1/user/login' ||
       path === '/v1/translations' ||
       path === '/v1/user/patient/:phone' ||
       path === '/v1/user/doctor/:phone' ||
-      path === '/v1/config'
+      path === '/v1/config' ||
+      path === '/v1/signup/doctor' ||
+      path === '/v1/patient/signup'
     ) {
       return next.handle();
     }
