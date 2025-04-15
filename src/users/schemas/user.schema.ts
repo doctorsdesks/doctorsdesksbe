@@ -13,7 +13,7 @@ export class User extends Document {
   @Prop({ type: String, enum: Object.values(UserType), required: true })
   userType: string;
 
-  @Prop({ type: String, index: true, unique: true, default: '' })
+  @Prop({ type: String, index: true, default: '' })
   authToken: string;
 
   @Prop({ type: Boolean, default: false })
