@@ -2,10 +2,8 @@ import { BannerType, ButtonType } from './enums';
 import { EachDayInfo } from './models/eachDayInfo.model';
 
 export interface SlotTimings {
-  slotDurationNormal: number;
-  eachDayInfoNormal: EachDayInfo[];
-  slotDurationEmergency: number;
-  eachDayInfoEmergency: EachDayInfo[];
+  slotDuration: number;
+  eachDayInfo: EachDayInfo[];
 }
 
 export interface FeeFollowups {

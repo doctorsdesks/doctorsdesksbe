@@ -48,24 +48,10 @@ export class Clinic extends Document {
       message: '{VALUE} is not an integar value',
     },
   })
-  slotDurationNormal: number;
+  slotDuration: number;
 
   @Prop({ type: [EachDayInfo], default: [] })
-  clinicTimingsNormal: EachDayInfo[];
-
-  @Prop({
-    type: Number,
-    required: true,
-    min: [5, 'Slot Duration must be at least 5 min.'],
-    validate: {
-      validator: Number.isInteger,
-      message: '{VALUE} is not an integar value',
-    },
-  })
-  slotDurationEmergency: number;
-
-  @Prop({ type: [EachDayInfo], default: [] })
-  clinicTimingsEmergency: EachDayInfo[];
+  clinicTimings: EachDayInfo[];
 }
 
 export const ClinicSchema = SchemaFactory.createForClass(Clinic);

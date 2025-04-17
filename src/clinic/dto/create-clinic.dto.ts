@@ -32,18 +32,10 @@ export class CreateClinicDto {
   // followupDays: number;
 
   @IsNumber()
-  slotDurationNormal: number;
-
-  @IsNumber()
-  @IsOptional()
-  slotDurationEmergency: number;
+  slotDuration: number;
 
   @IsArray()
-  clinicTimingsNormal: EachDayInfo[];
-
-  @IsArray()
-  @IsOptional()
-  clinicTimingsEmergency: EachDayInfo[];
+  clinicTimings: EachDayInfo[];
 
   constructor(
     doctorId: string,
@@ -52,10 +44,8 @@ export class CreateClinicDto {
     emergencyFee?: number,
     // followupFee?: number,
     // followupDays?: number,
-    slotDurationNormal?: number,
-    slotDurationEmergency?: number,
-    clinicTimingsNormal?: EachDayInfo[],
-    clinicTimingsEmergency?: EachDayInfo[],
+    slotDuration?: number,
+    clinicTimings?: EachDayInfo[],
   ) {
     this.doctorId = doctorId;
     this.clinicAddress = clinicAddress;
@@ -63,9 +53,7 @@ export class CreateClinicDto {
     this.emergencyFee = emergencyFee || 0;
     // this.followupFee = followupFee || 0;
     // this.followupDays = followupDays || 0;
-    this.slotDurationNormal = slotDurationNormal || 5;
-    this.slotDurationEmergency = slotDurationEmergency || 5;
-    this.clinicTimingsNormal = clinicTimingsNormal || [];
-    this.clinicTimingsEmergency = clinicTimingsEmergency || [];
+    this.slotDuration = slotDuration || 5;
+    this.clinicTimings = clinicTimings || [];
   }
 }
