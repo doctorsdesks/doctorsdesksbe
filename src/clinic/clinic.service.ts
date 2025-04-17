@@ -30,10 +30,8 @@ export class ClinicService {
       clinicData.clinicAddress,
       clinicData?.appointmentFee,
       clinicData?.emergencyFee,
-      clinicData?.slotDurationNormal,
-      clinicData?.slotDurationEmergency,
-      clinicData?.clinicTimingsNormal,
-      clinicData?.clinicTimingsEmergency,
+      clinicData?.slotDuration,
+      clinicData?.clinicTimings,
     );
     const createdClinic = await this.createClinic(createdClinicDto);
     return `${createdClinic.clinicAddress.clinicName} has been added successfully!`;
@@ -145,64 +143,26 @@ export class ClinicService {
       // update slot duration and timings if present
       if (updateClinicData?.timingPayload) {
         let shouldDfoUpdate = false;
-        if (currentClinic.clinicTimingsNormal?.length === 0) {
+        if (currentClinic.clinicTimings?.length === 0) {
           shouldDfoUpdate = true;
         }
-        const normalTimings =
-          updateClinicData.timingPayload.eachDayInfoNormal || [];
-        const emergencyTimings =
-          updateClinicData.timingPayload.eachDayInfoEmergency || [];
+        const timings = updateClinicData.timingPayload.eachDayInfo || [];
 
-        // Validate that normal timings don't overlap internally
-        if (
-          normalTimings.length > 0 &&
-          !this.validateNoOverlappingTimings(normalTimings)
-        ) {
+        // Validate that timings don't overlap internally
+        if (timings.length > 0 && !this.validateNoOverlappingTimings(timings)) {
           throw new HttpException(
-            'Normal appointment timings overlap for one or more days',
+            'Appointment timings overlap for one or more days',
             HttpStatus.BAD_REQUEST,
           );
         }
 
-        // Validate that emergency timings don't overlap internally
-        if (
-          emergencyTimings.length > 0 &&
-          !this.validateNoOverlappingTimings(emergencyTimings)
-        ) {
-          throw new HttpException(
-            'Emergency appointment timings overlap for one or more days',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
+        // Update appointment settings
+        currentClinic.slotDuration =
+          updateClinicData.timingPayload.slotDuration;
+        currentClinic.clinicTimings =
+          updateClinicData.timingPayload.eachDayInfo;
 
-        // Validate that normal and emergency timings don't overlap with each other
-        if (
-          normalTimings.length > 0 &&
-          emergencyTimings.length > 0 &&
-          !this.validateNoOverlappingBetweenNormalAndEmergency(
-            normalTimings,
-            emergencyTimings,
-          )
-        ) {
-          throw new HttpException(
-            'Normal and emergency appointment timings overlap for one or more days',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        // Update normal appointment settings
-        currentClinic.slotDurationNormal =
-          updateClinicData.timingPayload.slotDurationNormal;
-        currentClinic.clinicTimingsNormal =
-          updateClinicData.timingPayload.eachDayInfoNormal;
-
-        // Update emergency appointment settings
-        currentClinic.slotDurationEmergency =
-          updateClinicData.timingPayload.slotDurationEmergency;
-        currentClinic.clinicTimingsEmergency =
-          updateClinicData.timingPayload.eachDayInfoEmergency;
-
-        if (currentClinic.clinicTimingsNormal?.length === 0) {
+        if (currentClinic.clinicTimings?.length === 0) {
           shouldDfoUpdate = true;
         }
 
@@ -210,7 +170,7 @@ export class ClinicService {
           const dfoObject = {
             dfo: {
               isClinicTimingSet:
-                currentClinic.clinicTimingsNormal?.length === 0 ? false : true,
+                currentClinic.clinicTimings?.length === 0 ? false : true,
             },
           };
           this.dfoService.addDfo(currentClinic.doctorId, dfoObject);
@@ -251,63 +211,6 @@ export class ClinicService {
           this.timeToMinutes(nextTiming.startTime)
         ) {
           return false; // Overlap found
-        }
-      }
-    }
-
-    return true; // No overlaps found
-  }
-
-  /**
-   * Validates that normal and emergency timings don't overlap for the same day
-   * @param normalTimings Array of normal EachDayInfo objects
-   * @param emergencyTimings Array of emergency EachDayInfo objects
-   * @returns boolean indicating whether there are no overlapping timings between normal and emergency
-   */
-  private validateNoOverlappingBetweenNormalAndEmergency(
-    normalTimings: EachDayInfo[],
-    emergencyTimings: EachDayInfo[],
-  ): boolean {
-    // Create a map of day to timings for normal appointments
-    const normalTimingsByDay = new Map<
-      string,
-      { start: number; end: number }[]
-    >();
-
-    // Populate the map with normal timings
-    for (const dayInfo of normalTimings) {
-      const dayTimings = dayInfo.timings.map((timing) => ({
-        start: this.timeToMinutes(timing.startTime),
-        end: this.timeToMinutes(timing.endTime),
-      }));
-      normalTimingsByDay.set(dayInfo.day, dayTimings);
-    }
-
-    // Check if emergency timings overlap with normal timings for the same day
-    for (const emergencyDayInfo of emergencyTimings) {
-      const normalDayTimings = normalTimingsByDay.get(emergencyDayInfo.day);
-
-      // If no normal timings for this day, continue
-      if (!normalDayTimings) {
-        continue;
-      }
-
-      // Check each emergency timing against all normal timings for the day
-      for (const emergencyTiming of emergencyDayInfo.timings) {
-        const emergencyStart = this.timeToMinutes(emergencyTiming.startTime);
-        const emergencyEnd = this.timeToMinutes(emergencyTiming.endTime);
-
-        // Check for overlap with any normal timing
-        for (const normalTiming of normalDayTimings) {
-          // Check if emergency timing overlaps with normal timing
-          if (
-            (emergencyStart < normalTiming.end &&
-              emergencyEnd > normalTiming.start) ||
-            (normalTiming.start < emergencyEnd &&
-              normalTiming.end > emergencyStart)
-          ) {
-            return false; // Overlap found
-          }
         }
       }
     }

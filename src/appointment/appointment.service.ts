@@ -78,15 +78,17 @@ export class AppointmentService {
    * @param date Appointment date in YYYY-MM-DD format
    * @param startTime Appointment start time in HH:MM format
    * @param endTime Appointment end time in HH:MM format
-   * @returns true if the slot is available, false if it's already booked
+   * @param appointmentType Type of appointment (OPD or EMERGENCY)
+   * @returns Object with availability status and overlap information
    */
   private async isSlotAvailable(
     doctorId: string,
     date: string,
     startTime: string,
     endTime: string,
-  ): Promise<boolean> {
-    // Find any appointments for the doctor on the same day and time slot
+    appointmentType: AppointmentType,
+  ): Promise<{ isAvailable: boolean; hasOverlap: boolean }> {
+    // Check for conflicts
     const conflictingAppointments = await this.appointmentModel
       .find({
         doctorId: doctorId,
@@ -112,8 +114,16 @@ export class AppointmentService {
       })
       .exec();
 
-    // If there are any conflicting appointments, the slot is not available
-    return conflictingAppointments.length === 0;
+    const hasOverlap = conflictingAppointments.length > 0;
+
+    // If it's an emergency appointment, allow booking regardless of conflicts
+    // but indicate if there's an overlap
+    if (appointmentType === AppointmentType.EMERGENCY) {
+      return { isAvailable: true, hasOverlap };
+    }
+
+    // For non-emergency appointments, the slot is only available if there are no conflicts
+    return { isAvailable: !hasOverlap, hasOverlap };
   }
 
   async createAppointment(
@@ -127,13 +137,17 @@ export class AppointmentService {
       );
 
       // Check if the requested slot is available
-      const isAvailable = await this.isSlotAvailable(
+      const appointmentType =
+        AppointmentType[createAppointmentDto?.appointmentType];
+      const { isAvailable, hasOverlap } = await this.isSlotAvailable(
         createAppointmentDto.doctorId,
         createAppointmentDto.date,
         createAppointmentDto.startTime,
         createAppointmentDto.endTime,
+        appointmentType,
       );
 
+      // For non-emergency appointments, throw an error if the slot is not available
       if (!isAvailable) {
         throw new HttpException(
           'The requested appointment slot is already booked. Please choose a different time.',
@@ -155,7 +169,14 @@ export class AppointmentService {
             : AppointmentStatus.PENDING,
         createdBy: AppointmentByType[createAppointmentDto.originEntity],
         isLockedByDoctor: false,
+        isOverlapping: false, // Default to false
       };
+
+      // Set isOverlapping to true for emergency appointments that overlap with existing appointments
+      if (appointmentType === AppointmentType.EMERGENCY && hasOverlap) {
+        appointmentModelObject.isOverlapping = true;
+      }
+
       if (
         AppointmentType[createAppointmentDto?.appointmentType] ===
         AppointmentType.OPD
@@ -294,11 +315,13 @@ export class AppointmentService {
       // Check slot availability for all appointments
       const unavailableSlots = [];
       for (const lockAppointmentDto of lockAppointmentDtos) {
-        const isAvailable = await this.isSlotAvailable(
+        // Locked appointments are always OPD type
+        const { isAvailable } = await this.isSlotAvailable(
           lockAppointmentDto.doctorId,
           lockAppointmentDto.date,
           lockAppointmentDto.startTime,
           lockAppointmentDto.endTime,
+          AppointmentType.OPD,
         );
 
         if (!isAvailable) {
@@ -330,6 +353,7 @@ export class AppointmentService {
           createdBy: AppointmentByType.DOCTOR,
           isLockedByDoctor: lockAppointmentDto.isLockedByDoctor || true, // Default to true if not provided
           appointmentPatientType: PatientType.PRIMARY,
+          isOverlapping: false, // Default to false for locked appointments
         };
 
         // Get doctor info (only once if all appointments have the same doctorId)

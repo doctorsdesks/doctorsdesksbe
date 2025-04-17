@@ -46,77 +46,40 @@ export class SlotsService {
         );
       }
 
-      // Find the normal clinic timings for the given day
-      const normalDayInfo = clinic.clinicTimingsNormal?.find(
-        (info) => info.day === dayName,
-      );
-
-      // Find the emergency clinic timings for the given day
-      const emergencyDayInfo = clinic.clinicTimingsEmergency?.find(
+      // Find the clinic timings for the given day
+      const dayInfo = clinic.clinicTimings?.find(
         (info) => info.day === dayName,
       );
 
       // Check if any timings are available
-      if (
-        (!normalDayInfo ||
-          !normalDayInfo.timings ||
-          normalDayInfo.timings.length === 0) &&
-        (!emergencyDayInfo ||
-          !emergencyDayInfo.timings ||
-          emergencyDayInfo.timings.length === 0)
-      ) {
+      if (!dayInfo || !dayInfo.timings || dayInfo.timings.length === 0) {
         return {
           message: `No timings available for ${dayName}`,
           slots: {
-            normalSlots: [],
-            emergencySlots: [],
+            slots: [],
           },
         };
       }
 
-      // Generate normal slots
-      const normalSlots = [];
-      if (
-        normalDayInfo &&
-        normalDayInfo.timings &&
-        normalDayInfo.timings.length > 0
-      ) {
-        for (const timing of normalDayInfo.timings) {
-          const slots = await this.generateDetailedSlots(
+      // Generate slots
+      const slots = [];
+      if (dayInfo && dayInfo.timings && dayInfo.timings.length > 0) {
+        for (const timing of dayInfo.timings) {
+          const generatedSlots = await this.generateDetailedSlots(
             timing.startTime,
             timing.endTime,
-            clinic.slotDurationNormal,
+            clinic.slotDuration,
             clinic.doctorId,
             dateStr,
           );
-          normalSlots.push(...slots);
-        }
-      }
-
-      // Generate emergency slots
-      const emergencySlots = [];
-      if (
-        emergencyDayInfo &&
-        emergencyDayInfo.timings &&
-        emergencyDayInfo.timings.length > 0
-      ) {
-        for (const timing of emergencyDayInfo.timings) {
-          const slots = await this.generateDetailedSlots(
-            timing.startTime,
-            timing.endTime,
-            clinic.slotDurationEmergency,
-            clinic.doctorId,
-            dateStr,
-          );
-          emergencySlots.push(...slots);
+          slots.push(...generatedSlots);
         }
       }
 
       return {
         message: `Slots for clinic on ${dateStr} (${dayName})`,
         slots: {
-          normalSlots,
-          emergencySlots,
+          slots,
         },
       };
     } catch (error) {
