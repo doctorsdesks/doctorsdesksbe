@@ -32,6 +32,7 @@ export class AppointmentController {
   ) {
     return this.appointmentService.lockMultipleAppointments(
       lockMultipleAppointmentsDto.appointments,
+      lockMultipleAppointmentsDto.unblockSlots,
     );
   }
 

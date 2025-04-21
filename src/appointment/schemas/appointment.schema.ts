@@ -19,7 +19,7 @@ export class Appointment extends Document {
   @Prop({ type: String, required: false })
   doctorName: string;
 
-  @Prop({ type: String, required: true, index: true })
+  @Prop({ type: String, required: false, index: true })
   patientId: string;
 
   @Prop({ type: String, required: false })
