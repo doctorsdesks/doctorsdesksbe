@@ -179,6 +179,7 @@ export class SlotsService {
             (appointment.isLockedByDoctor && appointment.status !== 'CANCELLED')
           ) {
             detailedSlot.isLockedByDoctor = appointment.isLockedByDoctor;
+            detailedSlot.appointmentId = appointment._id.toString(); // Include appointmentId for locked slots
           }
 
           break;
