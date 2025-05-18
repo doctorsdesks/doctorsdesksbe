@@ -208,6 +208,9 @@ export class AppointmentService {
         patientName: patientInfo?.name,
         doctorImageUrl: doctorInfo?.imageUrl,
         doctorName: doctorInfo?.name,
+        doctorGraduation: doctorInfo?.graduation,
+        doctorSpecialisation: doctorInfo?.specialisation,
+        doctorOtherQualification: doctorInfo?.otherQualification,
         appointmentPatientType: patientInfo?.type || PatientType.PRIMARY,
       };
       const appointment = new this.appointmentModel(appointmentModelObject);
