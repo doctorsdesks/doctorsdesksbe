@@ -240,4 +240,44 @@ export class UserService {
       );
     }
   }
+
+  async resetPassword(
+    resetPasswordDto: CreateUserDto,
+  ): Promise<LogoutResponse> {
+    try {
+      const user = await this.userModel
+        .findOne({
+          phone: resetPasswordDto?.phone,
+          userType: resetPasswordDto?.userType,
+        })
+        .exec();
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+        };
+      }
+
+      const encryptedPassword = await this.encryptPassword(
+        resetPasswordDto?.password,
+      );
+
+      // Update user with empty auth token and lastLoggedOut date
+      user.authToken = '';
+      user.password = encryptedPassword;
+      user.isLoggedIn = false;
+      await user.save();
+
+      return {
+        success: true,
+        message: 'Your password has been reset successfully!',
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Error reseting password: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

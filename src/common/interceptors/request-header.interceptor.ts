@@ -34,7 +34,10 @@ export class RequestHeaderInterceptor implements NestInterceptor {
       path === '/v1/user/doctor/:phone' ||
       path === '/v1/config' ||
       path === '/v1/signup/doctor' ||
-      path === '/v1/patient/signup'
+      path === '/v1/patient/signup' ||
+      path === '/v1/message/trigger_otp' ||
+      path === '/v1/message/verify_otp' ||
+      path === '/v1/user/reset_password'
     ) {
       return next.handle();
     }
