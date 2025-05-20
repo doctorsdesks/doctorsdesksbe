@@ -30,6 +30,8 @@ import { ConfigModule } from './config/config.module';
 import { ConfigController } from './config/config.controller';
 import { BannerModule } from './banner/banner.module';
 import { BannerController } from './banner/banner.controller';
+import { MessageModule } from './message/message.module';
+import { MessageController } from './message/message.controller';
 
 @Module({
   imports: [
@@ -50,6 +52,7 @@ import { BannerController } from './banner/banner.controller';
     SlotsModule,
     ConfigModule,
     BannerModule,
+    MessageModule,
   ],
   controllers: [
     AppController,
@@ -63,6 +66,7 @@ import { BannerController } from './banner/banner.controller';
     SlotsController,
     ConfigController,
     BannerController,
+    MessageController,
   ],
   providers: [
     AppService,
