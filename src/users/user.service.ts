@@ -280,4 +280,63 @@ export class UserService {
       );
     }
   }
+
+  async getPushToken(phone: string, userType: UserType) {
+    try {
+      const user = await this.userModel
+        .findOne({
+          phone: phone,
+          userType: userType,
+        })
+        .exec();
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+        };
+      }
+      return {
+        status: 'Success',
+        token: user.expoPushToken,
+      };
+    } catch (error) {
+      return {
+        status: 'Failure',
+        error: error,
+      };
+    }
+  }
+
+  async savePushToken(phone: string, token: string, userType: UserType) {
+    try {
+      const user = await this.userModel
+        .findOne({
+          phone: phone,
+          userType: userType,
+        })
+        .exec();
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+        };
+      }
+
+      user.expoPushToken = token;
+      await user.save();
+
+      return {
+        success: true,
+        message:
+          'Your password has been reset successfully!' + user.expoPushToken,
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Error reseting password: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

@@ -15,12 +15,15 @@ import {
   AppointmentUpdateType,
   OPDAppointmentType,
   PatientType,
+  UserType,
 } from 'src/common/enums';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { LockAppointmentDto } from './dto/lock-appointment.dto';
 import { UnblockSlotDto } from './dto/unblock-slot.dto';
 import { PatientService } from 'src/patient/patient.service';
 import { DoctorService } from 'src/doctor/doctor.service';
+import { sendPushNotification } from 'src/common/push_notification_util';
+import { UserService } from 'src/users/user.service';
 
 @Injectable()
 export class AppointmentService {
@@ -28,6 +31,7 @@ export class AppointmentService {
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
     private readonly patientService: PatientService,
     private readonly doctorService: DoctorService,
+    private readonly userService: UserService,
   ) {}
 
   /**
@@ -215,6 +219,28 @@ export class AppointmentService {
       };
       const appointment = new this.appointmentModel(appointmentModelObject);
       const createdApppointment = await appointment.save();
+
+      // get expoPushToken from user
+      try {
+        const response = await this.userService.getPushToken(
+          createAppointmentDto?.doctorId,
+          UserType.DOCTOR,
+        );
+        if (response.status === 'Success') {
+          await sendPushNotification(
+            response.token,
+            'New Appointment',
+            'You have new appointment request.',
+          );
+        } else {
+          throw new HttpException(
+            'Please provide valid OPD Appointment.',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      } catch (error) {
+        throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      }
       return createdApppointment;
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);

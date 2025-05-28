@@ -14,6 +14,7 @@ import { UserType } from 'src/common/enums';
 import { RequestHeaderInterceptor } from 'src/common/interceptors/request-header.interceptor';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdatePushTokenDto } from './dto/update-push-token.dto';
 
 @Controller('/v1/user')
 @UseInterceptors(RequestHeaderInterceptor)
@@ -44,5 +45,10 @@ export class UserController {
   @Post('reset_password')
   async resetPassword(@Body() resetPasswordDto: CreateUserDto) {
     return this.userService.resetPassword(resetPasswordDto);
+  }
+
+  @Post('push_token')
+  async savePushToken(@Body() dto: UpdatePushTokenDto) {
+    return this.userService.savePushToken(dto.phone, dto.token, dto.userType);
   }
 }

@@ -25,6 +25,9 @@ export class User extends Document {
   @Prop({ type: Date, default: null })
   lastLoggedOut: Date;
 
+  @Prop({ type: String, default: '' })
+  expoPushToken: string;
+
   // createAt and updatedAt will be added automatically by mongo.
 }
 
