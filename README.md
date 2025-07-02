@@ -83,3 +83,16 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+
+## Docker build and deployment
+ - docker images
+ - docker rmi <Repo name>
+ -  docker build -t doctor/api .
+    docker build -t <Repo name on ECR> . // 
+
+    or with amd64
+    docker buildx build --platform linux/amd64 -t doctor/api .
+- docker tag doctor/api:latest 730335396119.dkr.ecr.ap-south-1.amazonaws.com/doctor/api:latest
+- docker push 730335396119.dkr.ecr.ap-south-1.amazonaws.com/doctor/api:latest
+- aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 730335396119.dkr.ecr.ap-south-1.amazonaws.com
