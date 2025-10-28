@@ -87,8 +87,7 @@ export class AppointmentService {
     date: string,
     startTime: string,
     endTime: string,
-    appointmentType: AppointmentType,
-  ): Promise<{ isAvailable: boolean; hasOverlap: boolean }> {
+  ): Promise<{ isAvailable: boolean }> {
     // Check for conflicts
     const conflictingAppointments = await this.appointmentModel
       .find({
@@ -112,19 +111,14 @@ export class AppointmentService {
           },
         ],
         status: { $ne: AppointmentStatus.CANCELLED }, // Ignore cancelled appointments
+        appointmentType: { $ne: AppointmentType.EMERGENCY }, //Ignore emergency appointments
       })
       .exec();
 
     const hasOverlap = conflictingAppointments.length > 0;
 
-    // If it's an emergency appointment, allow booking regardless of conflicts
-    // but indicate if there's an overlap
-    if (appointmentType === AppointmentType.EMERGENCY) {
-      return { isAvailable: true, hasOverlap };
-    }
-
     // For non-emergency appointments, the slot is only available if there are no conflicts
-    return { isAvailable: !hasOverlap, hasOverlap };
+    return { isAvailable: !hasOverlap };
   }
 
   async createAppointment(
@@ -140,48 +134,80 @@ export class AppointmentService {
       // Check if the requested slot is available
       const appointmentType =
         AppointmentType[createAppointmentDto?.appointmentType];
-      const { isAvailable, hasOverlap } = await this.isSlotAvailable(
-        createAppointmentDto.doctorId,
-        createAppointmentDto.date,
-        createAppointmentDto.startTime,
-        createAppointmentDto.endTime,
-        appointmentType,
+
+      const patientInfo = await this.patientService.getPatientByPhone(
+        createAppointmentDto?.patientId,
+      );
+      const doctorInfo = await this.doctorService.findByPhone(
+        createAppointmentDto?.doctorId,
       );
 
-      // For non-emergency appointments, throw an error if the slot is not available
-      if (!isAvailable) {
-        throw new HttpException(
-          'The requested appointment slot is already booked. Please choose a different time.',
-          HttpStatus.CONFLICT,
+      // for emergency appointment type, just book the appointment and for opd follow the isAvailable flow.
+      if (appointmentType === AppointmentType.EMERGENCY) {
+        let appointmentModelObject: any = {
+          doctorId: createAppointmentDto?.doctorId,
+          patientId: createAppointmentDto?.patientId,
+          date: createAppointmentDto?.date,
+          startTime: createAppointmentDto?.startTime,
+          endTime: createAppointmentDto?.endTime,
+          appointmentType:
+            AppointmentType[createAppointmentDto?.appointmentType],
+          status:
+            AppointmentByType[createAppointmentDto.originEntity] ===
+            AppointmentByType.DOCTOR
+              ? AppointmentStatus.ACCEPTED
+              : AppointmentStatus.PENDING,
+          createdBy: AppointmentByType[createAppointmentDto.originEntity],
+          isLockedByDoctor: false,
+        };
+
+        appointmentModelObject = {
+          ...appointmentModelObject,
+          patientImageUrl: patientInfo?.imageUrl,
+          patientName: patientInfo?.name,
+          doctorImageUrl: doctorInfo?.imageUrl,
+          doctorName: doctorInfo?.name,
+          doctorGraduation: doctorInfo?.graduation,
+          doctorSpecialisation: doctorInfo?.specialisation,
+          doctorOtherQualification: doctorInfo?.otherQualification,
+          appointmentPatientType: patientInfo?.type || PatientType.PRIMARY,
+        };
+        const appointment = new this.appointmentModel(appointmentModelObject);
+        const createdApppointment = await appointment.save();
+        return createdApppointment;
+      } else {
+        const { isAvailable } = await this.isSlotAvailable(
+          createAppointmentDto.doctorId,
+          createAppointmentDto.date,
+          createAppointmentDto.startTime,
+          createAppointmentDto.endTime,
         );
-      }
 
-      let appointmentModelObject: any = {
-        doctorId: createAppointmentDto?.doctorId,
-        patientId: createAppointmentDto?.patientId,
-        date: createAppointmentDto?.date,
-        startTime: createAppointmentDto?.startTime,
-        endTime: createAppointmentDto?.endTime,
-        appointmentType: AppointmentType[createAppointmentDto?.appointmentType],
-        status:
-          AppointmentByType[createAppointmentDto.originEntity] ===
-          AppointmentByType.DOCTOR
-            ? AppointmentStatus.ACCEPTED
-            : AppointmentStatus.PENDING,
-        createdBy: AppointmentByType[createAppointmentDto.originEntity],
-        isLockedByDoctor: false,
-        isOverlapping: false, // Default to false
-      };
+        // For non-emergency appointments, throw an error if the slot is not available
+        if (!isAvailable) {
+          throw new HttpException(
+            'The requested appointment slot is already booked. Please choose a different time.',
+            HttpStatus.CONFLICT,
+          );
+        }
 
-      // Set isOverlapping to true for emergency appointments that overlap with existing appointments
-      if (appointmentType === AppointmentType.EMERGENCY && hasOverlap) {
-        appointmentModelObject.isOverlapping = true;
-      }
+        let appointmentModelObject: any = {
+          doctorId: createAppointmentDto?.doctorId,
+          patientId: createAppointmentDto?.patientId,
+          date: createAppointmentDto?.date,
+          startTime: createAppointmentDto?.startTime,
+          endTime: createAppointmentDto?.endTime,
+          appointmentType:
+            AppointmentType[createAppointmentDto?.appointmentType],
+          status:
+            AppointmentByType[createAppointmentDto.originEntity] ===
+            AppointmentByType.DOCTOR
+              ? AppointmentStatus.ACCEPTED
+              : AppointmentStatus.PENDING,
+          createdBy: AppointmentByType[createAppointmentDto.originEntity],
+          isLockedByDoctor: false,
+        };
 
-      if (
-        AppointmentType[createAppointmentDto?.appointmentType] ===
-        AppointmentType.OPD
-      ) {
         if (OPDAppointmentType[createAppointmentDto?.opdAppointmentType]) {
           appointmentModelObject = {
             ...appointmentModelObject,
@@ -194,28 +220,22 @@ export class AppointmentService {
             HttpStatus.BAD_REQUEST,
           );
         }
-      }
-      const patientInfo = await this.patientService.getPatientByPhone(
-        createAppointmentDto?.patientId,
-      );
-      const doctorInfo = await this.doctorService.findByPhone(
-        createAppointmentDto?.doctorId,
-      );
 
-      appointmentModelObject = {
-        ...appointmentModelObject,
-        patientImageUrl: patientInfo?.imageUrl,
-        patientName: patientInfo?.name,
-        doctorImageUrl: doctorInfo?.imageUrl,
-        doctorName: doctorInfo?.name,
-        doctorGraduation: doctorInfo?.graduation,
-        doctorSpecialisation: doctorInfo?.specialisation,
-        doctorOtherQualification: doctorInfo?.otherQualification,
-        appointmentPatientType: patientInfo?.type || PatientType.PRIMARY,
-      };
-      const appointment = new this.appointmentModel(appointmentModelObject);
-      const createdApppointment = await appointment.save();
-      return createdApppointment;
+        appointmentModelObject = {
+          ...appointmentModelObject,
+          patientImageUrl: patientInfo?.imageUrl,
+          patientName: patientInfo?.name,
+          doctorImageUrl: doctorInfo?.imageUrl,
+          doctorName: doctorInfo?.name,
+          doctorGraduation: doctorInfo?.graduation,
+          doctorSpecialisation: doctorInfo?.specialisation,
+          doctorOtherQualification: doctorInfo?.otherQualification,
+          appointmentPatientType: patientInfo?.type || PatientType.PRIMARY,
+        };
+        const appointment = new this.appointmentModel(appointmentModelObject);
+        const createdApppointment = await appointment.save();
+        return createdApppointment;
+      }
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
@@ -365,7 +385,6 @@ export class AppointmentService {
             lockAppointmentDto.date,
             lockAppointmentDto.startTime,
             lockAppointmentDto.endTime,
-            AppointmentType.OPD,
           );
 
           if (!isAvailable) {

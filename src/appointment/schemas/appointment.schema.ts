@@ -73,9 +73,6 @@ export class Appointment extends Document {
   @Prop({ type: Boolean, default: false })
   isLockedByDoctor: boolean;
 
-  @Prop({ type: Boolean, default: false })
-  isOverlapping: boolean;
-
   @Prop({
     type: String,
     enum: Object.values(PatientType),
