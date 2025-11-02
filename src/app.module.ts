@@ -32,6 +32,10 @@ import { BannerModule } from './banner/banner.module';
 import { BannerController } from './banner/banner.controller';
 import { MessageModule } from './message/message.module';
 import { MessageController } from './message/message.controller';
+import { NotificationTokenModule } from './notificationToken/notification-token.module';
+import { NotificationTokenController } from './notificationToken/notification-token.controller';
+import { NotificationModule } from './notification/notification.module';
+import { NotificationController } from './notification/notification.controller';
 
 @Module({
   imports: [
@@ -53,6 +57,8 @@ import { MessageController } from './message/message.controller';
     ConfigModule,
     BannerModule,
     MessageModule,
+    NotificationTokenModule,
+    NotificationModule,
   ],
   controllers: [
     AppController,
@@ -67,6 +73,8 @@ import { MessageController } from './message/message.controller';
     ConfigController,
     BannerController,
     MessageController,
+    NotificationTokenController,
+    NotificationController,
   ],
   providers: [
     AppService,

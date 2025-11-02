@@ -1,4 +1,4 @@
-import { BannerType, ButtonType } from './enums';
+import { BannerType, ButtonType, UserType } from './enums';
 import { EachDayInfo } from './models/eachDayInfo.model';
 
 export interface SlotTimings {
@@ -28,4 +28,9 @@ export interface BannerData {
   bannerType: BannerType;
   buttonData: ButtonDataType;
   isHidden: boolean;
+}
+
+export interface NotificationUser {
+  phone: string;
+  type: UserType;
 }

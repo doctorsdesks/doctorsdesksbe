@@ -83,3 +83,8 @@ export enum ButtonType {
   SECONDARY = 'SECONDARY',
   TERTIARY = 'TERTIARY',
 }
+
+export enum NotificationCategory {
+  GENERAL = 'GENERAL',
+  APPOINTMENT = 'APPOINTMENT',
+}

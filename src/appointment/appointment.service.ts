@@ -13,14 +13,17 @@ import {
   AppointmentStatus,
   AppointmentType,
   AppointmentUpdateType,
+  NotificationCategory,
   OPDAppointmentType,
   PatientType,
+  UserType,
 } from 'src/common/enums';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { LockAppointmentDto } from './dto/lock-appointment.dto';
 import { UnblockSlotDto } from './dto/unblock-slot.dto';
 import { PatientService } from 'src/patient/patient.service';
 import { DoctorService } from 'src/doctor/doctor.service';
+import { NotificationTokenService } from 'src/notificationToken/notification-token.service';
 
 @Injectable()
 export class AppointmentService {
@@ -28,6 +31,7 @@ export class AppointmentService {
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
     private readonly patientService: PatientService,
     private readonly doctorService: DoctorService,
+    private readonly notificationTokenService: NotificationTokenService,
   ) {}
 
   /**
@@ -515,6 +519,40 @@ export class AppointmentService {
       }
       currentAppointment.updatedBy = appointmentUpdateBy;
       await currentAppointment.save();
+      console.log(
+        '1. appointment update call',
+        appointmentUpdateBy,
+        appointmentUpdateType,
+      );
+      if (
+        appointmentUpdateBy === 'DOCTOR' &&
+        (appointmentUpdateType === AppointmentUpdateType.ACCEPT ||
+          appointmentUpdateType === AppointmentUpdateType.CANCEL)
+      ) {
+        const notificationPayload = {
+          user: {
+            phone: currentAppointment.patientId,
+            type: UserType.PATIENT,
+          },
+          title:
+            appointmentUpdateType === AppointmentUpdateType.ACCEPT
+              ? 'Appointment Accepted.'
+              : 'Appointment Cancelled',
+          body:
+            appointmentUpdateType === AppointmentUpdateType.ACCEPT
+              ? `Doctor has accepted your appointment for ${currentAppointment.date}`
+              : `Doctor has cancelled your appointment for ${currentAppointment.date}`,
+          data: {
+            notificationId: '',
+            category: NotificationCategory.APPOINTMENT,
+          },
+        };
+        console.log(
+          '2. notification payload ready from appointment service',
+          notificationPayload,
+        );
+        this.notificationTokenService.sendNotification(notificationPayload);
+      }
       return 'Appointment has been updated succesffully!';
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
