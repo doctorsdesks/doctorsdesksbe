@@ -6,6 +6,8 @@ import { Appointment, AppointmentSchema } from './schemas/appointment.schema';
 import { PatientModule } from 'src/patient/patient.module';
 import { DoctorModule } from 'src/doctor/doctor.module';
 import { UserModule } from 'src/users/user.module';
+import { NotificationTokenModule } from 'src/notificationToken/notification-token.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   controllers: [AppointmentController],
@@ -17,6 +19,8 @@ import { UserModule } from 'src/users/user.module';
     PatientModule,
     DoctorModule,
     UserModule,
+    NotificationTokenModule,
+    NotificationModule,
   ],
   exports: [AppointmentService],
 })

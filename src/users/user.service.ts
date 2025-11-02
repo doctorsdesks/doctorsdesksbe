@@ -30,6 +30,7 @@ export interface LoginResponse {
     phone: string;
     userType: UserType;
     authToken?: string;
+    userId: string;
   };
 }
 
@@ -138,6 +139,7 @@ export class UserService {
           phone: user.phone,
           userType: UserType[user.userType],
           authToken: authToken,
+          userId: user.id,
         },
       };
     } catch (error) {
