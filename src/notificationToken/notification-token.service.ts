@@ -113,6 +113,7 @@ export class NotificationTokenService {
       category:
         NotificationCategory[data?.category] || NotificationCategory.GENERAL,
       metadata: data || {},
+      icon: data?.icon,
     });
 
     console.log('7. notification created', notification, notification.id);

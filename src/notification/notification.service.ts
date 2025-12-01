@@ -29,13 +29,36 @@ export class NotificationService {
       })
       .exec();
     const userId = user.id;
-    const notification = this.notificationModel.find({ userId: userId }).exec();
-    return notification;
+    const notifications = this.notificationModel
+      .find({ userId: userId })
+      .sort({ createdAt: -1 })
+      .exec();
+    return notifications;
   }
 
   async markAsRead(id: string) {
     return this.notificationModel
       .findByIdAndUpdate(id, { isRead: true }, { new: true })
       .exec();
+  }
+
+  async markAllAsRead(phone: string, type: string) {
+    const user = await this.userModel
+      .findOne({
+        phone: phone,
+        userType: UserType[type],
+      })
+      .exec();
+    const userId = user.id;
+    const notifications = await this.notificationModel
+      .find({ userId: userId, isRead: false })
+      .exec();
+    for (let i = 0; i < notifications.length; i++) {
+      const notificationId = notifications[i]._id;
+      await this.notificationModel
+        .findByIdAndUpdate(notificationId, { isRead: true }, { new: true })
+        .exec();
+    }
+    return 'All Notification marked as Read';
   }
 }

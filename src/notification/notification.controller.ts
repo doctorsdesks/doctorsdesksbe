@@ -35,4 +35,13 @@ export class NotificationController {
   async markAsRead(@Param('id') id: string) {
     return this.notificationsService.markAsRead(id);
   }
+
+  @Patch('all')
+  @UseInterceptors(RequestHeaderInterceptor)
+  async markAllAsRead(
+    @Query('phone') phone: string,
+    @Query('type') type: string,
+  ) {
+    return this.notificationsService.markAllAsRead(phone, type);
+  }
 }

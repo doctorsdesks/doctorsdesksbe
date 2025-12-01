@@ -19,6 +19,10 @@ export class CreateNotificationDto {
   image?: string;
 
   @IsOptional()
+  @IsString()
+  icon?: string;
+
+  @IsOptional()
   metadata?: Record<string, any>;
 
   @IsOptional()
