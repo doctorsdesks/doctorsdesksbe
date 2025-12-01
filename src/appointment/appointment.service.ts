@@ -179,7 +179,7 @@ export class AppointmentService {
         };
         const appointment = new this.appointmentModel(appointmentModelObject);
         const createdApppointment = await appointment.save();
-        // send notification to doctor for appointment
+        // send notification to doctor for emergency appointment
         const notificationPayload = {
           user: {
             phone:
@@ -201,8 +201,8 @@ export class AppointmentService {
           body:
             AppointmentByType[createAppointmentDto.originEntity] ===
             AppointmentByType.DOCTOR
-              ? `Doctor has created your appointment for ${reverseDate(createdApppointment.date)}`
-              : `Patient has raised an ${AppointmentType[createdApppointment.appointmentType]} appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+              ? `Doctor has created your Emergency appointment for ${reverseDate(createdApppointment.date)}`
+              : `Patient has raised an Emergency appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
           data: {
             notificationId: '',
             category: NotificationCategory.APPOINTMENT,
@@ -214,7 +214,7 @@ export class AppointmentService {
             appointmentId: createdApppointment._id,
           },
         };
-        console.log(
+        console.info(
           '2. notification payload ready from appointment service',
           notificationPayload,
         );
@@ -280,6 +280,48 @@ export class AppointmentService {
         };
         const appointment = new this.appointmentModel(appointmentModelObject);
         const createdApppointment = await appointment.save();
+
+        // send notification to doctor for opd appointment
+        const notificationPayload = {
+          user: {
+            phone:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? createdApppointment.patientId
+                : createdApppointment.doctorId,
+            type:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? UserType.PATIENT
+                : UserType.DOCTOR,
+          },
+          title:
+            AppointmentByType[createAppointmentDto.originEntity] ===
+            AppointmentByType.DOCTOR
+              ? 'Appointment Created'
+              : 'New Appointment Request',
+          body:
+            AppointmentByType[createAppointmentDto.originEntity] ===
+            AppointmentByType.DOCTOR
+              ? `Doctor has created your appointment for ${reverseDate(createdApppointment.date)}`
+              : `Patient has raised an OPD appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+          data: {
+            notificationId: '',
+            category: NotificationCategory.APPOINTMENT,
+            icon:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? 'confirmed'
+                : 'request',
+            appointmentId: createdApppointment._id,
+          },
+        };
+        console.info(
+          '2. notification payload ready from appointment service',
+          notificationPayload,
+        );
+        this.notificationTokenService.sendNotification(notificationPayload);
+
         return createdApppointment;
       }
     } catch (error) {
