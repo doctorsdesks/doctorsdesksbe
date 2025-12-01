@@ -202,7 +202,7 @@ export class AppointmentService {
             AppointmentByType[createAppointmentDto.originEntity] ===
             AppointmentByType.DOCTOR
               ? `Doctor has created your appointment for ${reverseDate(createdApppointment.date)}`
-              : `Patient has raised an appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+              : `Patient has raised an ${AppointmentType[createdApppointment.appointmentType]} appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
           data: {
             notificationId: '',
             category: NotificationCategory.APPOINTMENT,
