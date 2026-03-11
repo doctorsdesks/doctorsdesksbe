@@ -16,6 +16,9 @@ export class Notification extends Document {
   @Prop({ default: null })
   image?: string; // optional thumbnail or image for notification
 
+  @Prop({ default: null })
+  icon?: string;
+
   @Prop({ type: Object, default: {} })
   metadata?: Record<string, any>; // can store deep links, entityId, etc.
 

@@ -24,6 +24,7 @@ import { UnblockSlotDto } from './dto/unblock-slot.dto';
 import { PatientService } from 'src/patient/patient.service';
 import { DoctorService } from 'src/doctor/doctor.service';
 import { NotificationTokenService } from 'src/notificationToken/notification-token.service';
+import { reverseDate } from 'src/common/utis.';
 
 @Injectable()
 export class AppointmentService {
@@ -178,6 +179,47 @@ export class AppointmentService {
         };
         const appointment = new this.appointmentModel(appointmentModelObject);
         const createdApppointment = await appointment.save();
+        // send notification to doctor for emergency appointment
+        const notificationPayload = {
+          user: {
+            phone:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? createdApppointment.patientId
+                : createdApppointment.doctorId,
+            type:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? UserType.PATIENT
+                : UserType.DOCTOR,
+          },
+          title:
+            AppointmentByType[createAppointmentDto.originEntity] ===
+            AppointmentByType.DOCTOR
+              ? 'Appointment Created'
+              : 'New Appointment Request',
+          body:
+            AppointmentByType[createAppointmentDto.originEntity] ===
+            AppointmentByType.DOCTOR
+              ? `Doctor has created your Emergency appointment for ${reverseDate(createdApppointment.date)}`
+              : `Patient has raised an Emergency appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+          data: {
+            notificationId: '',
+            category: NotificationCategory.APPOINTMENT,
+            icon:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? 'confirmed'
+                : 'request',
+            appointmentId: createdApppointment._id,
+          },
+        };
+        console.info(
+          '2. notification payload ready from appointment service',
+          notificationPayload,
+        );
+        this.notificationTokenService.sendNotification(notificationPayload);
+
         return createdApppointment;
       } else {
         const { isAvailable } = await this.isSlotAvailable(
@@ -238,6 +280,48 @@ export class AppointmentService {
         };
         const appointment = new this.appointmentModel(appointmentModelObject);
         const createdApppointment = await appointment.save();
+
+        // send notification to doctor for opd appointment
+        const notificationPayload = {
+          user: {
+            phone:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? createdApppointment.patientId
+                : createdApppointment.doctorId,
+            type:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? UserType.PATIENT
+                : UserType.DOCTOR,
+          },
+          title:
+            AppointmentByType[createAppointmentDto.originEntity] ===
+            AppointmentByType.DOCTOR
+              ? 'Appointment Created'
+              : 'New Appointment Request',
+          body:
+            AppointmentByType[createAppointmentDto.originEntity] ===
+            AppointmentByType.DOCTOR
+              ? `Doctor has created your appointment for ${reverseDate(createdApppointment.date)}`
+              : `Patient has raised an OPD appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+          data: {
+            notificationId: '',
+            category: NotificationCategory.APPOINTMENT,
+            icon:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? 'confirmed'
+                : 'request',
+            appointmentId: createdApppointment._id,
+          },
+        };
+        console.info(
+          '2. notification payload ready from appointment service',
+          notificationPayload,
+        );
+        this.notificationTokenService.sendNotification(notificationPayload);
+
         return createdApppointment;
       }
     } catch (error) {
@@ -525,26 +609,36 @@ export class AppointmentService {
         appointmentUpdateType,
       );
       if (
-        appointmentUpdateBy === 'DOCTOR' &&
-        (appointmentUpdateType === AppointmentUpdateType.ACCEPT ||
-          appointmentUpdateType === AppointmentUpdateType.CANCEL)
+        appointmentUpdateType === AppointmentUpdateType.ACCEPT ||
+        appointmentUpdateType === AppointmentUpdateType.CANCEL
       ) {
         const notificationPayload = {
           user: {
-            phone: currentAppointment.patientId,
-            type: UserType.PATIENT,
+            phone:
+              appointmentUpdateBy === 'DOCTOR'
+                ? currentAppointment.patientId
+                : currentAppointment.doctorId,
+            type:
+              appointmentUpdateBy === 'DOCTOR'
+                ? UserType.PATIENT
+                : UserType.DOCTOR,
           },
           title:
             appointmentUpdateType === AppointmentUpdateType.ACCEPT
               ? 'Appointment Accepted.'
-              : 'Appointment Cancelled',
+              : 'Appointment Cancelled.',
           body:
             appointmentUpdateType === AppointmentUpdateType.ACCEPT
-              ? `Doctor has accepted your appointment for ${currentAppointment.date}`
-              : `Doctor has cancelled your appointment for ${currentAppointment.date}`,
+              ? `Doctor has accepted your appointment for ${reverseDate(currentAppointment.date)}`
+              : `${appointmentUpdateBy === 'DOCTOR' ? 'Doctor' : 'Patient'} has cancelled your appointment for ${reverseDate(currentAppointment.date)}`,
           data: {
             notificationId: '',
             category: NotificationCategory.APPOINTMENT,
+            icon:
+              appointmentUpdateType === AppointmentUpdateType.ACCEPT
+                ? 'confirmed'
+                : 'cancelled',
+            appointmentId: currentAppointment._id,
           },
         };
         console.log(

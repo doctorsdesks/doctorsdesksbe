@@ -90,20 +90,20 @@ export class NotificationTokenService {
         userType: UserType[user.type],
       })
       .exec();
-    console.log('3. got user with userId', userFromUser, userFromUser.id);
+    console.info('3. got user with userId', userFromUser, userFromUser.id);
     userId = userFromUser.id;
 
     const docs = await this.tokenModel
       .find({ userId: userId, active: true })
       .lean()
       .exec();
-    console.log('4. got docs with userId', docs);
+    console.info('4. got docs with userId', docs);
     tokens = docs.map((d) => d.pushToken);
-    console.log('5. got tokens with userId', tokens, tokens[0]);
+    console.info('5. got tokens with userId', tokens, tokens[0]);
 
     // 2) Deduplicate tokens (same device might appear multiple times)
     tokens = Array.from(new Set(tokens));
-    console.log('6. got tokens with userId', tokens, tokens[0]);
+    console.info('6. got tokens with userId', tokens, tokens[0]);
 
     // Create notification in notification table for the user
     const notification = await this.notificationsService.create({
@@ -113,9 +113,10 @@ export class NotificationTokenService {
       category:
         NotificationCategory[data?.category] || NotificationCategory.GENERAL,
       metadata: data || {},
+      icon: data?.icon,
     });
 
-    console.log('7. notification created', notification, notification.id);
+    console.info('7. notification created', notification, notification.id);
 
     const notificationId = notification.id;
 
@@ -132,7 +133,7 @@ export class NotificationTokenService {
       data: metaData || {},
     }));
 
-    console.log('8. messages created', messages, messages[0]);
+    console.info('8. messages created', messages, messages[0]);
 
     // 4) Filter invalid tokens before sending (expo-server-sdk helper)
     const validMessages = [];
@@ -152,7 +153,7 @@ export class NotificationTokenService {
       return { success: false, message: 'No valid tokens to send' };
     }
 
-    console.log('9. valid messages created', validMessages, validMessages[0]);
+    console.info('9. valid messages created', validMessages, validMessages[0]);
 
     // 5) Chunk messages and send
     const chunks = this.expo.chunkPushNotifications(validMessages);
