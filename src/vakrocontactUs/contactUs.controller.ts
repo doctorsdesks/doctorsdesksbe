@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ContactUsService } from './contactus.service';
 import { CreateContactUsDto } from './dto/contactUs.dto';
+import { ContactUsService } from './contactUs.service';
 
 @Controller('/v1/contactus')
 export class ContactUsController {
