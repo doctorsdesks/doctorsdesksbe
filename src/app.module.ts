@@ -36,13 +36,15 @@ import { NotificationTokenModule } from './notificationToken/notification-token.
 import { NotificationTokenController } from './notificationToken/notification-token.controller';
 import { NotificationModule } from './notification/notification.module';
 import { NotificationController } from './notification/notification.controller';
+import { ContactUsModule } from './vakrocontactUs/contactUs.module';
 
 @Module({
   imports: [
-    DatabaseModule,
     NestConfigModule.forRoot({
       isGlobal: true, // Make it global so you can access it in any module
     }),
+
+    DatabaseModule,
     InterceptorsModule,
     DoctorModule,
     SignupModule,
@@ -59,6 +61,7 @@ import { NotificationController } from './notification/notification.controller';
     MessageModule,
     NotificationTokenModule,
     NotificationModule,
+    ContactUsModule,
   ],
   controllers: [
     AppController,
