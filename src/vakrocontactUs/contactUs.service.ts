@@ -7,8 +7,7 @@ import { CreateContactUsDto } from './dto/contactUs.dto';
 @Injectable()
 export class ContactUsService {
   constructor(
-    @InjectModel(ContactUs.name, 'SECONDARY_DB')
-    private contactUsModel: Model<ContactUs>,
+    @InjectModel(ContactUs.name) private contactUsModel: Model<ContactUs>,
   ) {}
 
   async createContact(data: CreateContactUsDto) {

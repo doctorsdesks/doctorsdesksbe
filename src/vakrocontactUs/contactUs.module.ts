@@ -6,10 +6,9 @@ import { ContactUsService } from './contactUs.service';
 
 @Module({
   imports: [
-    MongooseModule.forFeature(
-      [{ name: ContactUs.name, schema: ContactUsSchema }],
-      'SECONDARY_DB',
-    ),
+    MongooseModule.forFeature([
+      { name: ContactUs.name, schema: ContactUsSchema },
+    ]),
   ],
   controllers: [ContactUsController],
   providers: [ContactUsService],
