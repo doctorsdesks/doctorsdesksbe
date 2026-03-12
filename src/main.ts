@@ -30,7 +30,11 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: true, // Allows all origins
+    origin: [
+      'http://localhost:3000',
+      'https://vakropharma.com',
+      'https://www.vakropharma.com',
+    ],
     credentials: true,
   });
   await app.listen(3000);
