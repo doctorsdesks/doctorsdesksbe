@@ -9,6 +9,7 @@ export enum Gender {
 export enum UserType {
   PATIENT = 'PATIENT',
   DOCTOR = 'DOCTOR',
+  ADMIN = 'ADMIN',
 }
 
 export enum PatientType {
