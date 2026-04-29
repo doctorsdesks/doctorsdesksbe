@@ -12,7 +12,11 @@ export class CreateHospitalDto {
 
   @IsString()
   @IsNotEmpty()
-  readonly name: string;
+  readonly hospitalName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly ownerName: string;
 
   @IsEmail()
   readonly email: string;
@@ -24,13 +28,15 @@ export class CreateHospitalDto {
   constructor(
     phone: string,
     password: string,
-    name: string,
+    hospitalName: string,
+    ownerName: string,
     email: string,
     address: Address,
   ) {
     this.phone = phone;
     this.password = password;
-    this.name = name;
+    this.hospitalName = hospitalName;
+    this.ownerName = ownerName;
     this.email = email;
     this.address = address;
   }

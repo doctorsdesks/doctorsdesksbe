@@ -1,11 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
 import { EachDayInfo } from 'src/common/models/eachDayInfo.model';
 
 @Schema({ timestamps: true })
 export class Clinic extends Document {
-  @Prop({ type: String, required: true })
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Doctor',
+    required: true,
+    index: true,
+  })
   doctorId: string;
 
   @Prop({ type: ClinicAddress, required: true })

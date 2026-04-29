@@ -8,13 +8,16 @@ export class Hospital extends Document {
   phone: string;
 
   @Prop({ type: String, required: true, index: true })
-  name: string;
+  hospitalName: string;
 
   @Prop({ type: String, default: '' })
   email: string;
 
   @Prop({ type: Address, required: true })
   address: Address;
+
+  @Prop({ type: String, required: true })
+  ownerName: string;
 
   // createAt and updatedAt will be added automatically by mongo.
 }

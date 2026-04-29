@@ -89,3 +89,9 @@ export enum NotificationCategory {
   GENERAL = 'GENERAL',
   APPOINTMENT = 'APPOINTMENT',
 }
+
+export enum RequestStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+}

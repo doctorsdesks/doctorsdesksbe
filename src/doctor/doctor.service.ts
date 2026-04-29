@@ -18,13 +18,38 @@ export class DoctorService {
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
   ) {}
 
+  private async generateUniqueDoctorCode(): Promise<string> {
+    let doctorCode: string;
+    let exists = true;
+
+    while (exists) {
+      const randomNumber = Math.floor(100000 + Math.random() * 900000);
+
+      doctorCode = `DOC${randomNumber}`;
+
+      const existingDoctor = await this.doctorModel.findOne({
+        doctorCode,
+      });
+
+      if (!existingDoctor) {
+        exists = false;
+      }
+    }
+
+    return doctorCode;
+  }
+
   async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
     console.info(
       'Signup Doctor - doctor service - create doctor called with: ',
       createDoctorDto,
     );
     try {
-      const newDoctor = new this.doctorModel(createDoctorDto);
+      const doctorCode = await this.generateUniqueDoctorCode();
+      const newDoctor = new this.doctorModel({
+        ...createDoctorDto,
+        doctorCode,
+      });
       const createdDoctor = await newDoctor.save();
       return createdDoctor;
     } catch (error) {

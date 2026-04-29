@@ -8,6 +8,14 @@ export class Doctor extends Document {
   @Prop({ type: String, required: true })
   phone: string;
 
+  @Prop({
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  })
+  doctorCode: string;
+
   @Prop({ type: String, default: '' })
   imageUrl: string;
 
