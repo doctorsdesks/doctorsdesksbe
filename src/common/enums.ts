@@ -65,6 +65,7 @@ export enum OPDAppointmentType {
 export enum AppointmentByType {
   DOCTOR = 'DOCTOR',
   PATIENT = 'PATIENT',
+  ADMIN = 'ADMIN',
 }
 
 export enum AppointmentUpdateType {
@@ -88,6 +89,9 @@ export enum ButtonType {
 export enum NotificationCategory {
   GENERAL = 'GENERAL',
   APPOINTMENT = 'APPOINTMENT',
+  DOCTOR_JOINING_REQUEST = 'DOCTOR_JOINING_REQUEST',
+  REJECTED_REQUEST = 'REJECTED_REQUEST',
+  ACCEPTED_REQUEST = 'ACCEPTED_REQUEST',
 }
 
 export enum RequestStatus {
@@ -95,3 +99,17 @@ export enum RequestStatus {
   ACCEPTED = 'ACCEPTED',
   REJECTED = 'REJECTED',
 }
+
+export enum DoctorHospitalRole {
+  PRIMARY_DOCTOR = 'PRIMARY_DOCTOR',
+  CONSULTANT = 'CONSULTANT',
+  VISITING_DOCTOR = 'VISITING_DOCTOR',
+  STAFF_DOCTOR = 'STAFF_DOCTOR',
+}
+
+export const DoctorRolesType = {
+  PRIMARY_DOCTOR: 'Primary Doctor',
+  CONSULTANT: 'Consultant',
+  VISITING_DOCTOR: 'Visiting Doctor',
+  STAFF_DOCTOR: 'Staff Doctor',
+};

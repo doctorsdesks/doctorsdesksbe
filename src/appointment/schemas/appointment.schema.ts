@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import {
   AppointmentByType,
   AppointmentStatus,
@@ -12,6 +12,21 @@ import {
 export class Appointment extends Document {
   @Prop({ type: String, required: true, index: true })
   doctorId: string;
+
+  @Prop({
+    type: String,
+    required: false,
+    index: true,
+  })
+  hospitalDoctorMappingId?: string;
+
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+    index: true,
+    ref: 'Hospital',
+  })
+  hospitalId?: mongoose.Types.ObjectId;
 
   @Prop({ type: String, required: false })
   doctorImageUrl: string;

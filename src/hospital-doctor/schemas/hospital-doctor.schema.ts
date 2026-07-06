@@ -1,13 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
-import { RequestStatus } from 'src/common/enums';
-
-export enum DoctorHospitalRole {
-  PRIMARY_DOCTOR = 'PRIMARY_DOCTOR',
-  CONSULTANT = 'CONSULTANT',
-  VISITING_DOCTOR = 'VISITING_DOCTOR',
-  STAFF_DOCTOR = 'STAFF_DOCTOR',
-}
+import { DoctorHospitalRole, RequestStatus } from 'src/common/enums';
 
 @Schema({ timestamps: true })
 export class HospitalDoctor extends Document {
@@ -41,7 +34,7 @@ export class HospitalDoctor extends Document {
 
   @Prop({
     type: Boolean,
-    default: true,
+    default: false,
   })
   isActive: boolean;
 }

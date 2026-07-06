@@ -37,6 +37,7 @@ import { NotificationTokenController } from './notificationToken/notification-to
 import { NotificationModule } from './notification/notification.module';
 import { NotificationController } from './notification/notification.controller';
 import { HospitalModule } from './hospital/hospital.module';
+import { HospitalDoctorModule } from './hospital-doctor/hospital-doctor.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { HospitalModule } from './hospital/hospital.module';
     NotificationTokenModule,
     NotificationModule,
     HospitalModule,
+    HospitalDoctorModule,
   ],
   controllers: [
     AppController,

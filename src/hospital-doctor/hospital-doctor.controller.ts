@@ -11,9 +11,7 @@ import {
 import { HospitalDoctorService } from './hospital-doctor.service';
 import { RaiseDoctorRequestDto } from './dto/raise-doctor-request.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { UpdateFeeDto } from './dto/update-fee.dto';
-import { UpdateSlotDto } from './dto/update-slot.dto';
-import { UpdateTimingDto } from './dto/update-timing.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
 @Controller('/v1/hospital-doctor')
 export class HospitalDoctorController {
@@ -23,7 +21,7 @@ export class HospitalDoctorController {
    * Hospital sends request to doctor
    * Admin enters doctor code and sends request
    */
-  @Post('request')
+  @Post('/request')
   raiseDoctorRequest(@Body() dto: RaiseDoctorRequestDto) {
     return this.hospitalDoctorService.raiseDoctorRequest(dto);
   }
@@ -31,7 +29,7 @@ export class HospitalDoctorController {
   /**
    * Doctor accepts hospital request
    */
-  @Patch('accept/:mappingId')
+  @Patch('/accept/:mappingId')
   acceptRequest(@Param('mappingId') mappingId: string) {
     return this.hospitalDoctorService.acceptRequest(mappingId);
   }
@@ -39,7 +37,7 @@ export class HospitalDoctorController {
   /**
    * Doctor rejects hospital request
    */
-  @Patch('reject/:mappingId')
+  @Patch('/reject/:mappingId')
   rejectRequest(@Param('mappingId') mappingId: string) {
     return this.hospitalDoctorService.rejectRequest(mappingId);
   }
@@ -47,7 +45,7 @@ export class HospitalDoctorController {
   /**
    * Get all accepted doctors of a hospital
    */
-  @Get('hospital/:hospitalId')
+  @Get('/hospital/:hospitalId')
   getDoctorsByHospital(@Param('hospitalId') hospitalId: string) {
     return this.hospitalDoctorService.getDoctorsByHospital(hospitalId);
   }
@@ -55,7 +53,7 @@ export class HospitalDoctorController {
   /**
    * Get all hospitals associated with doctor
    */
-  @Get('doctor/:doctorId')
+  @Get('/doctor/:doctorId')
   getHospitalsByDoctor(@Param('doctorId') doctorId: string) {
     return this.hospitalDoctorService.getHospitalsByDoctor(doctorId);
   }
@@ -63,49 +61,40 @@ export class HospitalDoctorController {
   /**
    * Get pending hospital requests for doctor app
    */
-  @Get('doctor/pending/:doctorId')
+  @Get('/doctor/pending/:doctorId')
   getDoctorPendingRequests(@Param('doctorId') doctorId: string) {
     return this.hospitalDoctorService.getDoctorPendingRequests(doctorId);
   }
 
   /**
+   * Get pending raised requests for hospital app
+   */
+  @Get('/hospital/pending/:hospitalId')
+  getPendingRaisedRequests(@Param('hospitalId') hospitalId: string) {
+    return this.hospitalDoctorService.getPendingRaisedRequests(hospitalId);
+  }
+
+  /**
    * Remove doctor from hospital
    */
-  @Delete(':mappingId')
+  @Delete('/:mappingId')
   removeDoctor(@Param('mappingId') mappingId: string) {
     return this.hospitalDoctorService.removeDoctor(mappingId);
   }
 
   /**
+   * Update doctor inactive
+   */
+  @Patch('/update-status')
+  updateDoctorStatus(@Body() dto: UpdateStatusDto) {
+    return this.hospitalDoctorService.updateDoctorStatus(dto);
+  }
+
+  /**
    * Update doctor role
    */
-  @Patch('update-role')
+  @Patch('/update-role')
   updateDoctorRole(@Body() dto: UpdateRoleDto) {
     return this.hospitalDoctorService.updateDoctorRole(dto);
-  }
-
-  /**
-   * Update appointment/emergency fees
-   * Only allowed after doctor accepts request
-   */
-  @Patch('update-fees')
-  updateFees(@Body() dto: UpdateFeeDto) {
-    return this.hospitalDoctorService.updateFees(dto);
-  }
-
-  /**
-   * Update slot duration
-   */
-  @Patch('update-slot-duration')
-  updateSlotDuration(@Body() dto: UpdateSlotDto) {
-    return this.hospitalDoctorService.updateSlotDuration(dto);
-  }
-
-  /**
-   * Update doctor timings
-   */
-  @Patch('update-timings')
-  updateTimings(@Body() dto: UpdateTimingDto) {
-    return this.hospitalDoctorService.updateDoctorTimings(dto);
   }
 }

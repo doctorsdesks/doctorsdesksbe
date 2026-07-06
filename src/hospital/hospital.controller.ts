@@ -18,7 +18,7 @@ import { CreateHospitalDto } from './dto/create-hospital.dto';
 export class HospitalController {
   constructor(private readonly hospitalService: HospitalService) {}
 
-  @Post()
+  @Post('/create')
   hospitalSignup(@Body() signupHospitalDto: CreateHospitalDto) {
     return this.hospitalService.createHospital(signupHospitalDto);
   }
@@ -26,6 +26,11 @@ export class HospitalController {
   @Get()
   findByPhone(@Query('phone') phone: string) {
     return this.hospitalService.findByPhone(phone.toString());
+  }
+
+  @Get('/details')
+  getHospitalDetails(@Query('phone') phone: string) {
+    return this.hospitalService.getHospitalDetails(phone.toString());
   }
 
   @Get('/all')

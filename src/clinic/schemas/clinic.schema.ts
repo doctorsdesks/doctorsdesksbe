@@ -13,6 +13,22 @@ export class Clinic extends Document {
   })
   doctorId: string;
 
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+    ref: 'HospitalDoctor',
+    index: true,
+  })
+  hospitalDoctorMappingId?: string;
+
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+    index: true,
+    ref: 'Hospital',
+  })
+  hospitalId?: string;
+
   @Prop({ type: ClinicAddress, required: true })
   clinicAddress: ClinicAddress;
 
@@ -29,20 +45,6 @@ export class Clinic extends Document {
     min: [0, 'Please save appointment fee. Mininum is 0'],
   })
   emergencyFee: number;
-
-  // @Prop({
-  //   type: Number,
-  //   required: true,
-  //   min: [0, 'Please save followup fee. Minimum is 0'],
-  // })
-  // followupFee: number;
-
-  // @Prop({
-  //   type: Number,
-  //   required: true,
-  //   min: [0, 'Please save followup days. Minimum is 0'],
-  // })
-  // followupDays: number;
 
   @Prop({
     type: Number,

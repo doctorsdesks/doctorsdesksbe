@@ -4,23 +4,35 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { HospitalDoctor } from './schemas/hospital-doctor.schema';
 import { AssignDoctorDto } from './dto/assign-doctor.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { UpdateFeeDto } from './dto/update-fee.dto';
-import { UpdateSlotDto } from './dto/update-slot.dto';
-import { UpdateTimingDto } from './dto/update-timing.dto';
-import { RequestStatus } from 'src/common/enums';
+import {
+  DoctorRolesType,
+  NotificationCategory,
+  RequestStatus,
+  UserType,
+} from 'src/common/enums';
 import { Doctor } from 'src/doctor/schemas/doctor.schema';
 import { RaiseDoctorRequestDto } from './dto/raise-doctor-request.dto';
+import { NotificationTokenService } from 'src/notificationToken/notification-token.service';
+import { Hospital } from 'src/hospital/schemas/hospital.schema';
+import { SignupService } from 'src/signup/signup.service';
+import { ClinicAddress } from 'src/common/models/clinicAddress.model';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
 @Injectable()
 export class HospitalDoctorService {
   constructor(
     @InjectModel(HospitalDoctor.name)
     private hospitalDoctorModel: Model<HospitalDoctor>,
+    @InjectModel(Doctor.name)
     private doctorModel: Model<Doctor>,
+    @InjectModel(Hospital.name)
+    private hospitalModel: Model<Hospital>,
+    private readonly notificationTokenService: NotificationTokenService,
+    private readonly signupService: SignupService,
   ) {}
 
   async assignDoctor(assignDoctorDto: AssignDoctorDto) {
@@ -73,6 +85,24 @@ export class HospitalDoctorService {
     return hospitals;
   }
 
+  async updateDoctorStatus(dto: UpdateStatusDto) {
+    const { mappingId, status } = dto;
+    const updated = await this.hospitalDoctorModel.findByIdAndUpdate(
+      mappingId,
+      { isActive: status },
+      { new: true },
+    );
+
+    if (!updated) {
+      throw new NotFoundException('Mapping not found');
+    }
+
+    return {
+      message: 'Doctor status has been updated successfully',
+      data: updated,
+    };
+  }
+
   async updateDoctorRole(updateRoleDto: UpdateRoleDto) {
     const { mappingId, role } = updateRoleDto;
 
@@ -92,72 +122,8 @@ export class HospitalDoctorService {
     };
   }
 
-  async updateFees(updateFeeDto: UpdateFeeDto) {
-    const { mappingId, appointmentFee, emergencyFee } = updateFeeDto;
-
-    const updated = await this.hospitalDoctorModel.findByIdAndUpdate(
-      mappingId,
-      {
-        appointmentFee,
-        emergencyFee,
-      },
-      { new: true },
-    );
-
-    if (!updated) {
-      throw new NotFoundException('Hospital doctor mapping not found');
-    }
-
-    return {
-      message: 'Fees updated successfully',
-      data: updated,
-    };
-  }
-
-  async updateSlotDuration(updateSlotDto: UpdateSlotDto) {
-    const { mappingId, slotDuration } = updateSlotDto;
-
-    const updated = await this.hospitalDoctorModel.findByIdAndUpdate(
-      mappingId,
-      {
-        slotDuration,
-      },
-      { new: true },
-    );
-
-    if (!updated) {
-      throw new NotFoundException('Hospital doctor mapping not found');
-    }
-
-    return {
-      message: 'Slot duration updated successfully',
-      data: updated,
-    };
-  }
-
-  async updateDoctorTimings(updateTimingDto: UpdateTimingDto) {
-    const { mappingId, doctorTimings } = updateTimingDto;
-
-    const updated = await this.hospitalDoctorModel.findByIdAndUpdate(
-      mappingId,
-      {
-        doctorTimings,
-      },
-      { new: true },
-    );
-
-    if (!updated) {
-      throw new NotFoundException('Hospital doctor mapping not found');
-    }
-
-    return {
-      message: 'Doctor timings updated successfully',
-      data: updated,
-    };
-  }
-
   async raiseDoctorRequest(dto: RaiseDoctorRequestDto) {
-    const { hospitalId, doctorCode } = dto;
+    const { hospitalId, doctorCode, role } = dto;
 
     const doctor = await this.doctorModel.findOne({ doctorCode });
 
@@ -165,20 +131,51 @@ export class HospitalDoctorService {
       throw new NotFoundException('Doctor not found');
     }
 
+    const hospital = await this.hospitalModel.findById(hospitalId);
+
+    let request: any = null;
+
     const existing = await this.hospitalDoctorModel.findOne({
       hospitalId,
       doctorId: doctor._id,
     });
 
     if (existing) {
-      throw new BadRequestException('Request already exists for this doctor');
+      if (existing?.requestStatus !== RequestStatus.REJECTED) {
+        throw new BadRequestException(
+          existing.requestStatus === RequestStatus.PENDING
+            ? 'Request already exists for this doctor'
+            : 'Doctor already work with the hospital',
+        );
+      } else {
+        existing.requestStatus = RequestStatus.PENDING;
+        request = await existing.save();
+      }
+    } else {
+      request = await this.hospitalDoctorModel.create({
+        hospitalId,
+        doctorId: doctor._id,
+        requestStatus: RequestStatus.PENDING,
+        role,
+      });
     }
 
-    const request = await this.hospitalDoctorModel.create({
-      hospitalId,
-      doctorId: doctor._id,
-      requestStatus: RequestStatus.PENDING,
-    });
+    const notificationPayload = {
+      user: {
+        phone: doctor.phone,
+        type: UserType.DOCTOR,
+      },
+      title: 'Hospital joining request.',
+      body: `${hospital.hospitalName} request you to join the hospital as a ${DoctorRolesType[role]}.`,
+      data: {
+        notificationId: '',
+        category: NotificationCategory.DOCTOR_JOINING_REQUEST,
+        icon: 'request',
+        mappingId: request?._id,
+      },
+    };
+
+    this.notificationTokenService.sendNotification(notificationPayload);
 
     // trigger notification here
 
@@ -189,15 +186,68 @@ export class HospitalDoctorService {
   }
 
   async acceptRequest(mappingId: string) {
-    const request = await this.hospitalDoctorModel.findById(mappingId);
+    const request = await this.hospitalDoctorModel
+      .findById(mappingId)
+      .populate({
+        path: 'hospitalId',
+        select: 'phone hospitalName address',
+      })
+      .populate({
+        path: 'doctorId',
+        select: 'phone name',
+      });
+
+    const hospitalPhone = (request?.hospitalId as any)?.phone;
+    const hospitalName = (request?.hospitalId as any)?.hospitalName;
+    const hospitalAddress = (request?.hospitalId as any)?.address;
+    const doctorName = (request.doctorId as any).name;
+    const docId = (request.doctorId as any)._id;
 
     if (!request) {
       throw new NotFoundException('Request not found');
     }
 
+    if (request.requestStatus === RequestStatus.REJECTED) {
+      throw new NotFoundException(
+        'Sorry! You have already rejecte this request.',
+      );
+    }
+
     request.requestStatus = RequestStatus.ACCEPTED;
+    request.isActive = true;
 
     await request.save();
+
+    const hospitalAddressForClinic = new ClinicAddress(
+      hospitalName,
+      hospitalAddress,
+    );
+
+    const requestId = new Types.ObjectId(mappingId);
+
+    await this.signupService.createClinic(
+      hospitalAddressForClinic,
+      docId,
+      requestId,
+      (request?.hospitalId as any)._id,
+    );
+
+    const notificationPayload = {
+      user: {
+        phone: hospitalPhone,
+        type: UserType.ADMIN,
+      },
+      title: 'Doctor accepted request.',
+      body: `Congratulations! ${doctorName} accepted your request for joining the hospital.`,
+      data: {
+        notificationId: '',
+        category: NotificationCategory.ACCEPTED_REQUEST,
+        icon: 'request',
+        mappingId: request._id,
+      },
+    };
+
+    this.notificationTokenService.sendNotification(notificationPayload);
 
     return {
       message: 'Doctor request accepted',
@@ -205,15 +255,45 @@ export class HospitalDoctorService {
   }
 
   async rejectRequest(mappingId: string) {
-    const request = await this.hospitalDoctorModel.findById(mappingId);
+    const request = await this.hospitalDoctorModel
+      .findById(mappingId)
+      .populate({
+        path: 'hospitalId',
+        select: 'phone hospitalName',
+      })
+      .populate({
+        path: 'doctorId',
+        select: 'name',
+      });
+
+    const hospitalPhone = (request?.hospitalId as any)?.phone;
+    const doctorName = (request.doctorId as any).name;
 
     if (!request) {
       throw new NotFoundException('Request not found');
     }
 
     request.requestStatus = RequestStatus.REJECTED;
+    request.isActive = false;
 
     await request.save();
+
+    const notificationPayload = {
+      user: {
+        phone: hospitalPhone,
+        type: UserType.ADMIN,
+      },
+      title: 'Doctor rejected request.',
+      body: `${doctorName} rejected your request for joining the hospital.`,
+      data: {
+        notificationId: '',
+        category: NotificationCategory.REJECTED_REQUEST,
+        icon: 'request',
+        mappingId: request._id,
+      },
+    };
+
+    this.notificationTokenService.sendNotification(notificationPayload);
 
     return {
       message: 'Doctor request rejected',
@@ -236,5 +316,14 @@ export class HospitalDoctorService {
         requestStatus: RequestStatus.PENDING,
       })
       .populate('hospitalId');
+  }
+
+  async getPendingRaisedRequests(hospitalId: string) {
+    return this.hospitalDoctorModel
+      .find({
+        hospitalId,
+        requestStatus: RequestStatus.PENDING,
+      })
+      .populate('doctorId');
   }
 }

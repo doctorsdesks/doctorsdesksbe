@@ -31,6 +31,11 @@ export class UserController {
     return this.userService.getUser(phone, UserType.DOCTOR);
   }
 
+  @Get('/admin/:phone')
+  getUserAsAdmin(@Param('phone') phone: string) {
+    return this.userService.getUser(phone, UserType.ADMIN);
+  }
+
   @Post('/login')
   async login(@Body() loginUserDto: LoginUserDto) {
     return this.userService.login(loginUserDto);

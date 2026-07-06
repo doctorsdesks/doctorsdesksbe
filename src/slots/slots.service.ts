@@ -114,6 +114,7 @@ export class SlotsService {
         dateStr,
         doctorId,
         '',
+        '',
         true,
       );
     } catch (error) {

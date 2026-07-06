@@ -22,7 +22,7 @@ export class ClinicService {
   }
 
   async addClinicToDoctor(
-    doctorId: string,
+    doctorId: Types.ObjectId,
     clinicData: Partial<CreateClinicDto>,
   ): Promise<string> {
     const createdClinicDto = new CreateClinicDto(
@@ -44,6 +44,24 @@ export class ClinicService {
       else return null;
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getHospitalClinic(
+    doctorId: string,
+    hospitalId: string,
+  ): Promise<Clinic> {
+    try {
+      const clinic = await this.clinicModel
+        .findOne({
+          doctorId,
+          hospitalId,
+        })
+        .exec();
+
+      return clinic;
+    } catch (error) {
+      throw new HttpException(error.message || error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -71,14 +89,38 @@ export class ClinicService {
     }
   }
 
+  private isHospitalClinic(clinic: Clinic): boolean {
+    return !!(clinic.hospitalId && clinic.hospitalDoctorMappingId);
+  }
+
   async updateClinic(
     clinicId: string,
     updateClinicDto: UpdateClinicDto,
   ): Promise<string> {
+    if (updateClinicDto.updateBy === '') {
+      throw new HttpException(
+        'Please provide updateBy field',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     // validations
     const currentClinic = await this.clinicModel
       .findOne({ _id: new Types.ObjectId(clinicId) })
+      .populate({
+        path: 'doctorId',
+        select: 'phone',
+      })
       .exec();
+
+    if (
+      updateClinicDto.updateBy === 'DOCTOR' &&
+      this.isHospitalClinic(currentClinic)
+    ) {
+      throw new HttpException(
+        'Please connect to you ADMIN to make changes, you are not allowed to make changes.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     try {
       // update clinic data
@@ -98,7 +140,10 @@ export class ClinicService {
   ): Promise<Clinic> {
     try {
       // update address if it is coming
-      if (updateClinicData?.addressPayload) {
+      if (
+        updateClinicData?.addressPayload &&
+        updateClinicData?.updateBy === 'DOCTOR'
+      ) {
         const addressObject = new ClinicAddress(
           updateClinicData?.addressPayload?.clinicName,
           updateClinicData?.addressPayload?.address,
@@ -127,13 +172,14 @@ export class ClinicService {
           shouldDfoUpdate = true;
         }
 
-        if (shouldDfoUpdate) {
+        if (shouldDfoUpdate && updateClinicData?.updateBy === 'DOCTOR') {
           const dfoObject = {
             dfo: {
-              isClinicFeeSet: currentClinic.appointmentFee === 0 ? false : true,
+              isClinicFeeSet: currentClinic.appointmentFee !== 0,
             },
           };
-          this.dfoService.addDfo(currentClinic.doctorId, dfoObject);
+          const docPhone = (currentClinic?.doctorId as any)?.phone;
+          this.dfoService.addDfo(docPhone, dfoObject);
         }
         // currentClinic.followupDays =
         //   updateClinicData?.feeFollowupPayload?.followupDays;
@@ -166,14 +212,14 @@ export class ClinicService {
           shouldDfoUpdate = true;
         }
 
-        if (shouldDfoUpdate) {
+        if (shouldDfoUpdate && updateClinicData?.updateBy === 'DOCTOR') {
           const dfoObject = {
             dfo: {
-              isClinicTimingSet:
-                currentClinic.clinicTimings?.length === 0 ? false : true,
+              isClinicTimingSet: currentClinic.clinicTimings?.length !== 0,
             },
           };
-          this.dfoService.addDfo(currentClinic.doctorId, dfoObject);
+          const docPhone = (currentClinic?.doctorId as any)?.phone;
+          this.dfoService.addDfo(docPhone, dfoObject);
         }
       }
       const updatedClinic = await currentClinic.save();
@@ -228,7 +274,10 @@ export class ClinicService {
     return hours * 60 + minutes;
   }
 
-  async deleteClinic(doctorId: string, clinicId: string): Promise<string> {
+  async deleteClinic(
+    doctorId: Types.ObjectId,
+    clinicId: string,
+  ): Promise<string> {
     try {
       const deletedResponse = await this.clinicModel
         .findOneAndDelete({ doctorId, _id: new Types.ObjectId(clinicId) })

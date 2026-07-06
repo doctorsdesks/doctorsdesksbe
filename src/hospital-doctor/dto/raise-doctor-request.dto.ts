@@ -1,4 +1,11 @@
-import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsMongoId,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { DoctorHospitalRole } from 'src/common/enums';
 
 export class RaiseDoctorRequestDto {
   @IsMongoId()
@@ -13,4 +20,7 @@ export class RaiseDoctorRequestDto {
   @IsOptional()
   @IsString()
   doctorName?: string;
+
+  @IsEnum(DoctorHospitalRole)
+  role: DoctorHospitalRole;
 }

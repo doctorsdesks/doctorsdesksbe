@@ -10,13 +10,23 @@ import { Hospital } from './schemas/hospital.schema';
 import { CreateHospitalDto } from './dto/create-hospital.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UserService } from 'src/users/user.service';
-import { UserType } from 'src/common/enums';
+import { AppointmentStatus, RequestStatus, UserType } from 'src/common/enums';
+import { Appointment } from 'src/appointment/schemas/appointment.schema';
+import { HospitalDoctor } from 'src/hospital-doctor/schemas/hospital-doctor.schema';
 
 @Injectable()
 export class HospitalService {
   constructor(
     private readonly userService: UserService,
-    @InjectModel(Hospital.name) private hospitalModel: Model<Hospital>,
+
+    @InjectModel(Hospital.name)
+    private hospitalModel: Model<Hospital>,
+
+    @InjectModel(Appointment.name)
+    private appointmentModel: Model<Appointment>,
+
+    @InjectModel(HospitalDoctor.name)
+    private hospitalDoctorModel: Model<HospitalDoctor>,
   ) {}
 
   async createHospital(
@@ -63,6 +73,68 @@ export class HospitalService {
       return null;
     }
     return hospital;
+  }
+
+  async getHospitalDetails(phone: string): Promise<any> {
+    const hospital = await this.hospitalModel.findOne({ phone }).lean();
+
+    if (!hospital) {
+      return null;
+    }
+
+    const hospitalId = hospital._id.toString();
+
+    // Adjust format to match how you're storing Appointment.date
+    const today = new Date().toISOString().split('T')[0]; // e.g. 2026-06-17
+
+    const [
+      totalAppointments,
+      completedAppointments,
+      pendingAppointmentRequests,
+      totalDoctors,
+      pendingDoctorRequests,
+    ] = await Promise.all([
+      this.appointmentModel.countDocuments({
+        hospitalId,
+        date: today,
+      }),
+
+      this.appointmentModel.countDocuments({
+        hospitalId,
+        date: today,
+        status: AppointmentStatus.COMPLETED,
+      }),
+
+      this.appointmentModel.countDocuments({
+        hospitalId,
+        date: today,
+        status: AppointmentStatus.PENDING,
+      }),
+
+      this.hospitalDoctorModel.countDocuments({
+        hospitalId,
+        requestStatus: RequestStatus.ACCEPTED,
+        isActive: true,
+      }),
+
+      this.hospitalDoctorModel.countDocuments({
+        hospitalId,
+        requestStatus: RequestStatus.PENDING,
+      }),
+    ]);
+
+    return {
+      hospitalId,
+      hospitalName: hospital.hospitalName,
+      ownerName: hospital.ownerName,
+      phone: hospital.phone,
+      totalAppointments,
+      completedAppointments,
+      pendingAppointmentRequests,
+
+      totalDoctors,
+      pendingDoctorRequests,
+    };
   }
 
   /**

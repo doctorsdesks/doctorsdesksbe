@@ -1,5 +1,5 @@
 import { IsArray, IsEnum, IsMongoId, IsNumber, Min } from 'class-validator';
-import { DoctorHospitalRole } from '../schemas/hospital-doctor.schema';
+import { DoctorHospitalRole } from 'src/common/enums';
 
 export class AssignDoctorDto {
   @IsMongoId()

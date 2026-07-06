@@ -4,15 +4,20 @@ import {
   IsNumber,
   IsObject,
   IsOptional,
-  IsString,
 } from 'class-validator';
+import { Types } from 'mongoose';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
 import { EachDayInfo } from 'src/common/models/eachDayInfo.model';
 
 export class CreateClinicDto {
-  @IsString()
   @IsNotEmpty()
-  readonly doctorId: string;
+  readonly doctorId: Types.ObjectId;
+
+  @IsOptional()
+  readonly hospitalId?: Types.ObjectId;
+
+  @IsOptional()
+  readonly hospitalDoctorMappingId?: Types.ObjectId;
 
   @IsObject()
   @IsNotEmpty()
@@ -38,7 +43,7 @@ export class CreateClinicDto {
   clinicTimings: EachDayInfo[];
 
   constructor(
-    doctorId: string,
+    doctorId: Types.ObjectId,
     clinicAddress: ClinicAddress,
     appointmentFee?: number,
     emergencyFee?: number,
@@ -46,6 +51,8 @@ export class CreateClinicDto {
     // followupDays?: number,
     slotDuration?: number,
     clinicTimings?: EachDayInfo[],
+    hospitalId?: Types.ObjectId,
+    hospitalDoctorMappingId?: Types.ObjectId,
   ) {
     this.doctorId = doctorId;
     this.clinicAddress = clinicAddress;
@@ -55,5 +62,7 @@ export class CreateClinicDto {
     // this.followupDays = followupDays || 0;
     this.slotDuration = slotDuration || 5;
     this.clinicTimings = clinicTimings || [];
+    this.hospitalId = hospitalId;
+    this.hospitalDoctorMappingId = hospitalDoctorMappingId;
   }
 }

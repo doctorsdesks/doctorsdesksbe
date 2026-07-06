@@ -152,6 +152,9 @@ export class AppointmentService {
         let appointmentModelObject: any = {
           doctorId: createAppointmentDto?.doctorId,
           patientId: createAppointmentDto?.patientId,
+          hospitalDoctorMappingId:
+            createAppointmentDto?.hospitalDoctorMappingId,
+          hospitalId: createAppointmentDto?.hospitalId,
           date: createAppointmentDto?.date,
           startTime: createAppointmentDto?.startTime,
           endTime: createAppointmentDto?.endTime,
@@ -239,6 +242,9 @@ export class AppointmentService {
 
         let appointmentModelObject: any = {
           doctorId: createAppointmentDto?.doctorId,
+          hospitalDoctorMappingId:
+            createAppointmentDto?.hospitalDoctorMappingId,
+          hospitalId: createAppointmentDto?.hospitalId,
           patientId: createAppointmentDto?.patientId,
           date: createAppointmentDto?.date,
           startTime: createAppointmentDto?.startTime,
@@ -345,17 +351,29 @@ export class AppointmentService {
     date: string,
     doctorId?: string,
     patientId?: string,
+    hospitalId?: string,
     allAppointment?: boolean,
   ): Promise<any[]> {
     try {
-      if (!doctorId && !patientId) {
-        throw new BadRequestException('Provide either doctorId or patientId.');
+      if (!doctorId && !patientId && !hospitalId) {
+        throw new BadRequestException(
+          'Provide doctorId, patientId or hospitalId.',
+        );
       }
       const query: any = {};
       if (doctorId) query.doctorId = doctorId;
       if (patientId) query.patientId = patientId;
+      if (hospitalId) {
+        query.hospitalId = hospitalId;
+      }
       if (date) query.date = date;
-      const appointments = await this.appointmentModel.find(query).exec();
+      const appointments = await this.appointmentModel
+        .find(query)
+        .populate({
+          path: 'hospitalId',
+          select: 'hospitalName',
+        })
+        .exec();
       if (!appointments) {
         throw new HttpException(
           'No appointment is found.',
