@@ -13,6 +13,7 @@ import {
   AppointmentStatus,
   AppointmentType,
   AppointmentUpdateType,
+  NotificationActionCategory,
   NotificationCategory,
   OPDAppointmentType,
   PatientType,
@@ -24,7 +25,7 @@ import { UnblockSlotDto } from './dto/unblock-slot.dto';
 import { PatientService } from 'src/patient/patient.service';
 import { DoctorService } from 'src/doctor/doctor.service';
 import { NotificationTokenService } from 'src/notificationToken/notification-token.service';
-import { reverseDate } from 'src/common/utis.';
+import { formatTimeTo12Hour, reverseDate } from 'src/common/utis.';
 
 @Injectable()
 export class AppointmentService {
@@ -152,6 +153,9 @@ export class AppointmentService {
         let appointmentModelObject: any = {
           doctorId: createAppointmentDto?.doctorId,
           patientId: createAppointmentDto?.patientId,
+          hospitalDoctorMappingId:
+            createAppointmentDto?.hospitalDoctorMappingId,
+          hospitalId: createAppointmentDto?.hospitalId,
           date: createAppointmentDto?.date,
           startTime: createAppointmentDto?.startTime,
           endTime: createAppointmentDto?.endTime,
@@ -202,16 +206,25 @@ export class AppointmentService {
             AppointmentByType[createAppointmentDto.originEntity] ===
             AppointmentByType.DOCTOR
               ? `Doctor has created your Emergency appointment for ${reverseDate(createdApppointment.date)}`
-              : `Patient has raised an Emergency appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+              : `Patient has raised an Emergency appointment request for ${reverseDate(createdApppointment.date)} at ${formatTimeTo12Hour(createdApppointment.startTime)}`,
           data: {
             notificationId: '',
-            category: NotificationCategory.APPOINTMENT,
+            category:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? NotificationCategory.APPOINTMENT_STATUS
+                : NotificationCategory.APPOINTMENT_REQUEST,
             icon:
               AppointmentByType[createAppointmentDto.originEntity] ===
               AppointmentByType.DOCTOR
                 ? 'confirmed'
                 : 'request',
             appointmentId: createdApppointment._id,
+            actionCategory:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? NotificationActionCategory.NONE
+                : NotificationActionCategory.APPOINTMENT_REQUEST_ACTIONS,
           },
         };
         console.info(
@@ -239,6 +252,9 @@ export class AppointmentService {
 
         let appointmentModelObject: any = {
           doctorId: createAppointmentDto?.doctorId,
+          hospitalDoctorMappingId:
+            createAppointmentDto?.hospitalDoctorMappingId,
+          hospitalId: createAppointmentDto?.hospitalId,
           patientId: createAppointmentDto?.patientId,
           date: createAppointmentDto?.date,
           startTime: createAppointmentDto?.startTime,
@@ -304,10 +320,10 @@ export class AppointmentService {
             AppointmentByType[createAppointmentDto.originEntity] ===
             AppointmentByType.DOCTOR
               ? `Doctor has created your appointment for ${reverseDate(createdApppointment.date)}`
-              : `Patient has raised an OPD appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+              : `Patient has raised an OPD appointment request for ${reverseDate(createdApppointment.date)} at ${formatTimeTo12Hour(createdApppointment.startTime)}`,
           data: {
             notificationId: '',
-            category: NotificationCategory.APPOINTMENT,
+            category: NotificationCategory.APPOINTMENT_REQUEST,
             icon:
               AppointmentByType[createAppointmentDto.originEntity] ===
               AppointmentByType.DOCTOR
@@ -345,17 +361,29 @@ export class AppointmentService {
     date: string,
     doctorId?: string,
     patientId?: string,
+    hospitalId?: string,
     allAppointment?: boolean,
   ): Promise<any[]> {
     try {
-      if (!doctorId && !patientId) {
-        throw new BadRequestException('Provide either doctorId or patientId.');
+      if (!doctorId && !patientId && !hospitalId) {
+        throw new BadRequestException(
+          'Provide doctorId, patientId or hospitalId.',
+        );
       }
       const query: any = {};
       if (doctorId) query.doctorId = doctorId;
       if (patientId) query.patientId = patientId;
+      if (hospitalId) {
+        query.hospitalId = hospitalId;
+      }
       if (date) query.date = date;
-      const appointments = await this.appointmentModel.find(query).exec();
+      const appointments = await this.appointmentModel
+        .find(query)
+        .populate({
+          path: 'hospitalId',
+          select: 'hospitalName',
+        })
+        .exec();
       if (!appointments) {
         throw new HttpException(
           'No appointment is found.',
@@ -633,7 +661,7 @@ export class AppointmentService {
               : `${appointmentUpdateBy === 'DOCTOR' ? 'Doctor' : 'Patient'} has cancelled your appointment for ${reverseDate(currentAppointment.date)}`,
           data: {
             notificationId: '',
-            category: NotificationCategory.APPOINTMENT,
+            category: NotificationCategory.APPOINTMENT_STATUS,
             icon:
               appointmentUpdateType === AppointmentUpdateType.ACCEPT
                 ? 'confirmed'

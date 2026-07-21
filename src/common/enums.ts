@@ -9,6 +9,7 @@ export enum Gender {
 export enum UserType {
   PATIENT = 'PATIENT',
   DOCTOR = 'DOCTOR',
+  ADMIN = 'ADMIN',
 }
 
 export enum PatientType {
@@ -64,6 +65,7 @@ export enum OPDAppointmentType {
 export enum AppointmentByType {
   DOCTOR = 'DOCTOR',
   PATIENT = 'PATIENT',
+  ADMIN = 'ADMIN',
 }
 
 export enum AppointmentUpdateType {
@@ -86,5 +88,35 @@ export enum ButtonType {
 
 export enum NotificationCategory {
   GENERAL = 'GENERAL',
-  APPOINTMENT = 'APPOINTMENT',
+  APPOINTMENT_REQUEST = 'APPOINTMENT_REQUEST',
+  APPOINTMENT_STATUS = 'APPOINTMENT_STATUS',
+  DOCTOR_JOINING_REQUEST = 'DOCTOR_JOINING_REQUEST',
+  DOCTOR_JOINING_STATUS = 'DOCTOR_JOINING_STATUS',
+  HOSPITAL_ANNOUNCEMENT = 'HOSPITAL_ANNOUNCEMENT',
 }
+
+export enum NotificationActionCategory {
+  NONE = 'NONE',
+  APPOINTMENT_REQUEST_ACTIONS = 'APPOINTMENT_REQUEST_ACTIONS',
+  DOCTOR_JOINING_REQUEST_ACTIONS = 'DOCTOR_JOINING_REQUEST_ACTIONS',
+}
+
+export enum RequestStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+}
+
+export enum DoctorHospitalRole {
+  PRIMARY_DOCTOR = 'PRIMARY_DOCTOR',
+  CONSULTANT = 'CONSULTANT',
+  VISITING_DOCTOR = 'VISITING_DOCTOR',
+  STAFF_DOCTOR = 'STAFF_DOCTOR',
+}
+
+export const DoctorRolesType = {
+  PRIMARY_DOCTOR: 'Primary Doctor',
+  CONSULTANT: 'Consultant',
+  VISITING_DOCTOR: 'Visiting Doctor',
+  STAFF_DOCTOR: 'Staff Doctor',
+};

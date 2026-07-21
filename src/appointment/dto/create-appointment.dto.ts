@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import {
   AppointmentByType,
   AppointmentType,
@@ -9,6 +9,14 @@ export class CreateAppointmentDto {
   @IsString()
   @IsNotEmpty()
   readonly doctorId: string;
+
+  @IsOptional()
+  @IsString()
+  readonly hospitalId?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly hospitalDoctorMappingId?: string;
 
   @IsString()
   @IsNotEmpty()

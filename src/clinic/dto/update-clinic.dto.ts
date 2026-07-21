@@ -1,4 +1,4 @@
-import { IsObject, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 import { FeeFollowups, SlotTimings } from 'src/common/interfaces';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
 
@@ -14,4 +14,8 @@ export class UpdateClinicDto {
   @IsOptional()
   @IsObject()
   readonly feeFollowupPayload?: FeeFollowups;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly updateBy: string;
 }

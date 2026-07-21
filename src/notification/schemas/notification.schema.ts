@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { NotificationCategory } from 'src/common/enums';
+import {
+  NotificationActionCategory,
+  NotificationCategory,
+} from 'src/common/enums';
 
 @Schema({ timestamps: true })
 export class Notification extends Document {
@@ -26,9 +29,14 @@ export class Notification extends Document {
   isRead: boolean;
 
   @Prop({
-    default: 'GENERAL',
+    default: NotificationCategory.GENERAL,
   })
   category: NotificationCategory; // classify notification type
+
+  @Prop({
+    default: NotificationActionCategory.NONE,
+  })
+  actionCategory: NotificationActionCategory;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

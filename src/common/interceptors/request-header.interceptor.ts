@@ -32,12 +32,14 @@ export class RequestHeaderInterceptor implements NestInterceptor {
       path === '/v1/translations' ||
       path === '/v1/user/patient/:phone' ||
       path === '/v1/user/doctor/:phone' ||
+      path === '/v1/user/admin/:phone' ||
       path === '/v1/config' ||
       path === '/v1/signup/doctor' ||
       path === '/v1/patient/signup' ||
       path === '/v1/message/trigger_otp' ||
       path === '/v1/message/verify_otp' ||
-      path === '/v1/user/reset_password'
+      path === '/v1/user/reset_password' ||
+      path === '/v1/hospital/create'
     ) {
       return next.handle();
     }

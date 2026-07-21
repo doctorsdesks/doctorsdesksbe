@@ -12,6 +12,8 @@ import { CreateDfoDto } from 'src/dfo/dto/create-dfo.dto';
 import { dfoInitial } from 'src/common/constant';
 import { UserService } from 'src/users/user.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { ClinicAddress } from 'src/common/models/clinicAddress.model';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class SignupService {
@@ -43,19 +45,23 @@ export class SignupService {
       try {
         // Step 2: Create a doctor
         const newDoctor = await this.createDoctor(signupDoctorDto);
-        const doctorId = newDoctor.phone;
+        const doctorPhone = newDoctor.phone;
+        const doctorId = newDoctor._id as Types.ObjectId;
         console.info('doctorId for signup: ', doctorId);
 
         try {
           // Step 3: Create a clinic
-          const newClinic = await this.createClinic(signupDoctorDto, doctorId);
+          const newClinic = await this.createClinic(
+            signupDoctorDto.clinicAddress,
+            doctorId,
+          );
           console.info(
             `${newDoctor.name}, your doctor account has been created successfully with clinic ${newClinic.clinicAddress.clinicName}`,
           );
 
           try {
             // Step 4: Create a DFO
-            const createDfoDto = new CreateDfoDto(doctorId, dfoInitial);
+            const createDfoDto = new CreateDfoDto(doctorPhone, dfoInitial);
             await this.dfoService.createDfo(createDfoDto);
 
             return newDoctor;
@@ -68,20 +74,20 @@ export class SignupService {
             );
 
             // Rollback: Delete doctor
-            await this.doctorService.deleteDoctor(doctorId);
+            await this.doctorService.deleteDoctor(doctorPhone);
 
             // Rollback: Delete user
-            await this.userService.deleteUser(doctorId, UserType.DOCTOR);
+            await this.userService.deleteUser(doctorPhone, UserType.DOCTOR);
 
             throw dfoError;
           }
         } catch (clinicError) {
           // Rollback: Delete doctor
           console.error('Error creating clinic, rolling back:', clinicError);
-          await this.doctorService.deleteDoctor(doctorId);
+          await this.doctorService.deleteDoctor(doctorPhone);
 
           // Rollback: Delete user
-          await this.userService.deleteUser(doctorId, UserType.DOCTOR);
+          await this.userService.deleteUser(doctorPhone, UserType.DOCTOR);
 
           throw clinicError;
         }
@@ -138,13 +144,23 @@ export class SignupService {
   }
 
   async createClinic(
-    signupDoctorInfo: SignupDoctorDto,
-    docId: string,
+    clinicAddress: ClinicAddress,
+    docId: Types.ObjectId,
+    mappingId?: Types.ObjectId,
+    hospitalId?: Types.ObjectId,
   ): Promise<Clinic> {
-    const createdClinicDto = new CreateClinicDto(
-      docId,
-      signupDoctorInfo.clinicAddress,
-    );
+    const createdClinicDto = mappingId
+      ? new CreateClinicDto(
+          docId,
+          clinicAddress,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          hospitalId,
+          mappingId,
+        )
+      : new CreateClinicDto(docId, clinicAddress);
     console.info('createClinitDto :: ', createdClinicDto);
     const createdClinic =
       await this.clinicService.createClinic(createdClinicDto);

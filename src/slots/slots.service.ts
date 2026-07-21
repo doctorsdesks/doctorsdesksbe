@@ -69,7 +69,7 @@ export class SlotsService {
             timing.startTime,
             timing.endTime,
             clinic.slotDuration,
-            clinic.doctorId,
+            (clinic.doctorId as any)?.phone,
             dateStr,
           );
           slots.push(...generatedSlots);
@@ -113,6 +113,7 @@ export class SlotsService {
       appointments = await this.appointmentService.getAppointments(
         dateStr,
         doctorId,
+        '',
         '',
         true,
       );

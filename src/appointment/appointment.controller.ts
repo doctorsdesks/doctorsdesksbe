@@ -54,10 +54,18 @@ export class AppointmentController {
     @Query('date') date?: string,
     @Query('doctor') doctorId?: string,
     @Query('patient') patientId?: string,
+    @Query('hospital') hospitalId?: string,
   ) {
-    if (!doctorId && !patientId) {
-      throw new BadRequestException('Provide either doctorId or patientId');
+    if (!doctorId && !patientId && !hospitalId) {
+      throw new BadRequestException(
+        'Provide doctorId, patientId or hospitalId',
+      );
     }
-    return this.appointmentService.getAppointments(date, doctorId, patientId);
+    return this.appointmentService.getAppointments(
+      date,
+      doctorId,
+      patientId,
+      hospitalId,
+    );
   }
 }

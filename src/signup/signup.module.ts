@@ -9,6 +9,7 @@ import { UserModule } from 'src/users/user.module';
 @Module({
   imports: [DoctorModule, ClinicModule, DfoModule, UserModule],
   providers: [SignupService],
+  exports: [SignupService],
   controllers: [SignupController],
 })
 export class SignupModule {}
