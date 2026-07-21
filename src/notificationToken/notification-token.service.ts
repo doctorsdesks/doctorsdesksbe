@@ -5,7 +5,11 @@ import { NotificationToken } from './schemas/notification-token.schema';
 import { CreateTokenDto } from './dto/create-token.dto';
 import { Expo } from 'expo-server-sdk';
 import { NotificationService } from 'src/notification/notification.service';
-import { NotificationCategory, UserType } from 'src/common/enums';
+import {
+  NotificationActionCategory,
+  NotificationCategory,
+  UserType,
+} from 'src/common/enums';
 import { User } from 'src/users/schemas/user.schema';
 import { NotificationUser } from 'src/common/interfaces';
 
@@ -114,6 +118,9 @@ export class NotificationTokenService {
         NotificationCategory[data?.category] || NotificationCategory.GENERAL,
       metadata: data || {},
       icon: data?.icon,
+      actionCategory:
+        NotificationActionCategory[data?.actionCategory] ||
+        NotificationActionCategory.NONE,
     });
 
     console.info('7. notification created', notification, notification.id);
@@ -123,6 +130,8 @@ export class NotificationTokenService {
     const metaData = { ...data };
     metaData.notificationId = notificationId;
     metaData.category = data?.category || NotificationCategory.GENERAL;
+    metaData.actionCategory =
+      data?.actionCategory || NotificationActionCategory.NONE;
 
     // 3) Prepare messages array
     const messages = tokens.map((token) => ({
@@ -130,6 +139,7 @@ export class NotificationTokenService {
       sound: 'default',
       title,
       body,
+      categoryId: data?.actionCategory,
       data: metaData || {},
     }));
 

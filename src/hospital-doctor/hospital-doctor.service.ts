@@ -10,6 +10,7 @@ import { AssignDoctorDto } from './dto/assign-doctor.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import {
   DoctorRolesType,
+  NotificationActionCategory,
   NotificationCategory,
   RequestStatus,
   UserType,
@@ -172,6 +173,8 @@ export class HospitalDoctorService {
         category: NotificationCategory.DOCTOR_JOINING_REQUEST,
         icon: 'request',
         mappingId: request?._id,
+        actionCategory:
+          NotificationActionCategory.DOCTOR_JOINING_REQUEST_ACTIONS,
       },
     };
 
@@ -241,8 +244,8 @@ export class HospitalDoctorService {
       body: `Congratulations! ${doctorName} accepted your request for joining the hospital.`,
       data: {
         notificationId: '',
-        category: NotificationCategory.ACCEPTED_REQUEST,
-        icon: 'request',
+        category: NotificationCategory.DOCTOR_JOINING_STATUS,
+        icon: 'success',
         mappingId: request._id,
       },
     };
@@ -287,8 +290,8 @@ export class HospitalDoctorService {
       body: `${doctorName} rejected your request for joining the hospital.`,
       data: {
         notificationId: '',
-        category: NotificationCategory.REJECTED_REQUEST,
-        icon: 'request',
+        category: NotificationCategory.DOCTOR_JOINING_STATUS,
+        icon: 'reject',
         mappingId: request._id,
       },
     };
@@ -307,6 +310,15 @@ export class HospitalDoctorService {
         requestStatus: RequestStatus.ACCEPTED,
       })
       .populate('doctorId');
+  }
+
+  async getOneDoctor(id: string) {
+    const mapping = await this.hospitalDoctorModel.findById(id);
+
+    if (!mapping) {
+      throw new NotFoundException('Mapping not found');
+    }
+    return mapping;
   }
 
   async getDoctorPendingRequests(doctorId: string) {

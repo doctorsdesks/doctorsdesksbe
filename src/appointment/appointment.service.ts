@@ -13,6 +13,7 @@ import {
   AppointmentStatus,
   AppointmentType,
   AppointmentUpdateType,
+  NotificationActionCategory,
   NotificationCategory,
   OPDAppointmentType,
   PatientType,
@@ -24,7 +25,7 @@ import { UnblockSlotDto } from './dto/unblock-slot.dto';
 import { PatientService } from 'src/patient/patient.service';
 import { DoctorService } from 'src/doctor/doctor.service';
 import { NotificationTokenService } from 'src/notificationToken/notification-token.service';
-import { reverseDate } from 'src/common/utis.';
+import { formatTimeTo12Hour, reverseDate } from 'src/common/utis.';
 
 @Injectable()
 export class AppointmentService {
@@ -205,16 +206,25 @@ export class AppointmentService {
             AppointmentByType[createAppointmentDto.originEntity] ===
             AppointmentByType.DOCTOR
               ? `Doctor has created your Emergency appointment for ${reverseDate(createdApppointment.date)}`
-              : `Patient has raised an Emergency appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+              : `Patient has raised an Emergency appointment request for ${reverseDate(createdApppointment.date)} at ${formatTimeTo12Hour(createdApppointment.startTime)}`,
           data: {
             notificationId: '',
-            category: NotificationCategory.APPOINTMENT,
+            category:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? NotificationCategory.APPOINTMENT_STATUS
+                : NotificationCategory.APPOINTMENT_REQUEST,
             icon:
               AppointmentByType[createAppointmentDto.originEntity] ===
               AppointmentByType.DOCTOR
                 ? 'confirmed'
                 : 'request',
             appointmentId: createdApppointment._id,
+            actionCategory:
+              AppointmentByType[createAppointmentDto.originEntity] ===
+              AppointmentByType.DOCTOR
+                ? NotificationActionCategory.NONE
+                : NotificationActionCategory.APPOINTMENT_REQUEST_ACTIONS,
           },
         };
         console.info(
@@ -310,10 +320,10 @@ export class AppointmentService {
             AppointmentByType[createAppointmentDto.originEntity] ===
             AppointmentByType.DOCTOR
               ? `Doctor has created your appointment for ${reverseDate(createdApppointment.date)}`
-              : `Patient has raised an OPD appointment request for ${reverseDate(createdApppointment.date)} at ${createdApppointment.startTime}`,
+              : `Patient has raised an OPD appointment request for ${reverseDate(createdApppointment.date)} at ${formatTimeTo12Hour(createdApppointment.startTime)}`,
           data: {
             notificationId: '',
-            category: NotificationCategory.APPOINTMENT,
+            category: NotificationCategory.APPOINTMENT_REQUEST,
             icon:
               AppointmentByType[createAppointmentDto.originEntity] ===
               AppointmentByType.DOCTOR
@@ -651,7 +661,7 @@ export class AppointmentService {
               : `${appointmentUpdateBy === 'DOCTOR' ? 'Doctor' : 'Patient'} has cancelled your appointment for ${reverseDate(currentAppointment.date)}`,
           data: {
             notificationId: '',
-            category: NotificationCategory.APPOINTMENT,
+            category: NotificationCategory.APPOINTMENT_STATUS,
             icon:
               appointmentUpdateType === AppointmentUpdateType.ACCEPT
                 ? 'confirmed'

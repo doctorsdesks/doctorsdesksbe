@@ -69,7 +69,7 @@ export class SlotsService {
             timing.startTime,
             timing.endTime,
             clinic.slotDuration,
-            clinic.doctorId,
+            (clinic.doctorId as any)?.phone,
             dateStr,
           );
           slots.push(...generatedSlots);

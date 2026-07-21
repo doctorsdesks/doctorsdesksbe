@@ -59,6 +59,14 @@ export class HospitalDoctorController {
   }
 
   /**
+   * Get one doctor with mappingId
+   */
+  @Get('/one/:mappingId')
+  getOneDoctor(@Param('mappingId') mappingId: string) {
+    return this.hospitalDoctorService.getOneDoctor(mappingId);
+  }
+
+  /**
    * Get pending hospital requests for doctor app
    */
   @Get('/doctor/pending/:doctorId')

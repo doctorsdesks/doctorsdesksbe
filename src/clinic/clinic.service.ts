@@ -7,12 +7,19 @@ import { UpdateClinicDto } from './dto/update-clinic.dto';
 import { ClinicAddress } from 'src/common/models/clinicAddress.model';
 import { EachDayInfo } from 'src/common/models/eachDayInfo.model';
 import { DfoService } from 'src/dfo/dfo.service';
+import {
+  NotificationActionCategory,
+  NotificationCategory,
+  UserType,
+} from 'src/common/enums';
+import { NotificationTokenService } from 'src/notificationToken/notification-token.service';
 
 @Injectable()
 export class ClinicService {
   constructor(
     @InjectModel(Clinic.name) private clinicModel: Model<Clinic>,
     private readonly dfoService: DfoService,
+    private readonly notificationTokenService: NotificationTokenService,
   ) {}
 
   async createClinic(createClinicDto: CreateClinicDto): Promise<Clinic> {
@@ -81,6 +88,10 @@ export class ClinicService {
     try {
       const clinicDetails = await this.clinicModel
         .findOne({ _id: new Types.ObjectId(clinicId) })
+        .populate({
+          path: 'doctorId',
+          select: 'phone', // fetch only phone
+        })
         .exec();
       if (clinicDetails !== null) return clinicDetails;
       else return null;
@@ -181,10 +192,6 @@ export class ClinicService {
           const docPhone = (currentClinic?.doctorId as any)?.phone;
           this.dfoService.addDfo(docPhone, dfoObject);
         }
-        // currentClinic.followupDays =
-        //   updateClinicData?.feeFollowupPayload?.followupDays;
-        // currentClinic.followupFee =
-        //   updateClinicData?.feeFollowupPayload?.followupFee;
       }
       // update slot duration and timings if present
       if (updateClinicData?.timingPayload) {
@@ -223,6 +230,55 @@ export class ClinicService {
         }
       }
       const updatedClinic = await currentClinic.save();
+      // Notification to doctor if updated by hospital
+
+      if (
+        updateClinicData?.updateBy === 'ADMIN' &&
+        this.isHospitalClinic(updatedClinic)
+      ) {
+        await updatedClinic.populate([
+          {
+            path: 'doctorId',
+            select: 'phone',
+          },
+          {
+            path: 'hospitalId',
+            select: 'hospitalName',
+          },
+        ]);
+
+        const doctor = updatedClinic.doctorId as any;
+        const hospital = updatedClinic.hospitalId as any;
+        let body = '';
+        if (
+          updateClinicData?.feeFollowupPayload &&
+          updateClinicData?.timingPayload
+        ) {
+          body = `${hospital.hospitalName} updated the clinic fee and timings.`;
+        } else if (updateClinicData?.feeFollowupPayload) {
+          body = `${hospital.hospitalName} updated the clinic fee.`;
+        } else if (updateClinicData?.timingPayload) {
+          body = `${hospital.hospitalName} updated the clinic timings.`;
+        }
+        const notificationPayload = {
+          user: {
+            phone: doctor.phone,
+            type: UserType.DOCTOR,
+          },
+          title: 'Hospital Clinic Update.',
+          body: body,
+          data: {
+            notificationId: '',
+            category: NotificationCategory.HOSPITAL_ANNOUNCEMENT,
+            icon: '',
+            clinicId: updatedClinic?._id,
+            actionCategory: NotificationActionCategory.NONE,
+          },
+        };
+
+        this.notificationTokenService.sendNotification(notificationPayload);
+      }
+      // Notification to doctor if updated by hospital
       return updatedClinic;
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);

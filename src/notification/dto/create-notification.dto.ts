@@ -1,5 +1,8 @@
 import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { NotificationCategory } from 'src/common/enums';
+import {
+  NotificationActionCategory,
+  NotificationCategory,
+} from 'src/common/enums';
 
 export class CreateNotificationDto {
   @IsMongoId()
@@ -25,6 +28,11 @@ export class CreateNotificationDto {
   @IsOptional()
   metadata?: Record<string, any>;
 
-  @IsOptional()
-  category?: NotificationCategory;
+  @IsString()
+  @IsNotEmpty()
+  category: NotificationCategory;
+
+  @IsString()
+  @IsNotEmpty()
+  actionCategory: NotificationActionCategory;
 }
