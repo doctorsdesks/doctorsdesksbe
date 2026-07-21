@@ -30,7 +30,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: true, // Allows all origins
+    origin: ['https://www.nirvahcare.com', 'http://localhost:3000'],
     credentials: true,
   });
   await app.listen(3000);
