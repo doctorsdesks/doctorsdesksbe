@@ -77,33 +77,36 @@ export class DoctorService {
         return [];
       }
 
-      const doctorsMap = new Map<string, Doctor>(); // Using Map to ensure uniqueness by phone
+      const doctorsMap = new Map<string, Doctor>();
 
       for (const doctor of allDoctors) {
         const doctorClinics = await this.clinicService.getAllClinics(
-          doctor.phone,
+          doctor._id as string,
         );
 
         if (!doctorClinics || doctorClinics.length === 0) {
           continue;
         }
 
-        const hasMatchingClinic = doctorClinics.some((clinic) => {
-          const clinicAddress = clinic.clinicAddress.address;
+        for (const clinic of doctorClinics) {
+          const clinicAddress = clinic.clinicAddress?.address;
+
+          if (!clinicAddress) {
+            continue;
+          }
 
           const cityMatches = city
-            ? clinicAddress.city.toLowerCase() === city.toLowerCase()
+            ? clinicAddress.city?.toLowerCase() === city.toLowerCase()
             : true;
 
           const pincodeMatches = pincode
             ? clinicAddress.pincode === pincode
             : true;
 
-          return cityMatches || pincodeMatches;
-        });
-
-        if (hasMatchingClinic) {
-          doctorsMap.set(doctor.phone, doctor);
+          // Use && if both city AND pincode should match
+          if (cityMatches || pincodeMatches) {
+            doctorsMap.set(doctor.phone, doctor);
+          }
         }
       }
 
@@ -145,39 +148,41 @@ export class DoctorService {
           )
         : allDoctors;
 
-      if (doctorsBySpecialisation.length === 0 || (!city && !pincode)) {
-        return doctorsBySpecialisation;
+      if (doctorsBySpecialisation.length === 0) {
+        return [];
       }
 
       // Filter doctors by city or pincode
-      const doctorsMap = new Map<string, Doctor>(); // Using Map to ensure uniqueness by phone
+      const doctorsMap = new Map<string, Doctor>();
 
       for (const doctor of doctorsBySpecialisation) {
         const doctorClinics = await this.clinicService.getAllClinics(
-          doctor.phone,
+          doctor._id as string,
         );
 
         if (!doctorClinics || doctorClinics.length === 0) {
           continue;
         }
 
-        const hasMatchingClinic = doctorClinics.some((clinic) => {
-          const clinicAddress = clinic.clinicAddress.address;
+        for (const clinic of doctorClinics) {
+          const clinicAddress = clinic.clinicAddress?.address;
+
+          if (!clinicAddress) {
+            continue;
+          }
 
           const cityMatches = city
-            ? clinicAddress.city.toLowerCase() === city.toLowerCase()
-            : false;
+            ? clinicAddress.city?.toLowerCase() === city.toLowerCase()
+            : true;
 
           const pincodeMatches = pincode
             ? clinicAddress.pincode === pincode
-            : false;
+            : true;
 
-          // Match if either city or pincode matches
-          return cityMatches || pincodeMatches;
-        });
-
-        if (hasMatchingClinic) {
-          doctorsMap.set(doctor.phone, doctor);
+          // Match if either city OR pincode matches
+          if (cityMatches || pincodeMatches) {
+            doctorsMap.set(doctor.phone, doctor);
+          }
         }
       }
 

@@ -4,6 +4,7 @@ import {
   AppointmentType,
   OPDAppointmentType,
 } from 'src/common/enums';
+import { Types } from 'mongoose';
 
 export class CreateAppointmentDto {
   @IsString()
@@ -12,11 +13,11 @@ export class CreateAppointmentDto {
 
   @IsOptional()
   @IsString()
-  readonly hospitalId?: string;
+  readonly hospitalId?: Types.ObjectId;
 
   @IsOptional()
   @IsString()
-  readonly hospitalDoctorMappingId?: string;
+  readonly hospitalDoctorMappingId?: Types.ObjectId;
 
   @IsString()
   @IsNotEmpty()
@@ -54,6 +55,8 @@ export class CreateAppointmentDto {
     appointmentType: AppointmentType,
     opdAppointmentType: OPDAppointmentType,
     originEntity: AppointmentByType,
+    hospitalId?: Types.ObjectId,
+    hospitalDoctorMappingId?: Types.ObjectId,
   ) {
     this.doctorId = doctorId;
     this.patientId = patientId;
@@ -63,5 +66,7 @@ export class CreateAppointmentDto {
     this.appointmentType = appointmentType;
     this.opdAppointmentType = opdAppointmentType;
     this.originEntity = originEntity;
+    this.hospitalId = hospitalId;
+    this.hospitalDoctorMappingId = hospitalDoctorMappingId;
   }
 }

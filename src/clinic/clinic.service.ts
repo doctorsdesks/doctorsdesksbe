@@ -46,7 +46,13 @@ export class ClinicService {
 
   async getAllClinics(doctorId: string): Promise<Clinic[]> {
     try {
-      const allClinics = await this.clinicModel.find({ doctorId }).exec();
+      const allClinics = await this.clinicModel
+        .find({ doctorId })
+        .populate({
+          path: 'hospitalId',
+          select: 'hospitalName phone',
+        })
+        .exec();
       if (allClinics?.length > 0) return allClinics;
       else return null;
     } catch (error) {
