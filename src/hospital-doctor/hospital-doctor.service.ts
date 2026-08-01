@@ -184,7 +184,7 @@ export class HospitalDoctorService {
 
     return {
       message: 'Request sent successfully',
-      data: request,
+      data: { ...request, docName: doctor?.name },
     };
   }
 
@@ -299,7 +299,7 @@ export class HospitalDoctorService {
     this.notificationTokenService.sendNotification(notificationPayload);
 
     return {
-      message: 'Doctor request rejected',
+      message: 'You have successfully rejected hospital request.',
     };
   }
 

@@ -184,47 +184,54 @@ export class AppointmentService {
         const appointment = new this.appointmentModel(appointmentModelObject);
         const createdApppointment = await appointment.save();
         // send notification to doctor for emergency appointment
+
+        let screen = '';
+        // let params: Record<string, any> = {};
+        let phone = '';
+        let type: UserType = UserType.DOCTOR;
+        let title = '';
+        let body = '';
+        let category = '';
+        let icon = '';
+        let actionCategory = '';
+
+        if (
+          AppointmentByType[createAppointmentDto.originEntity] ===
+          AppointmentByType.DOCTOR
+        ) {
+          phone = createdApppointment.patientId;
+          type = UserType.PATIENT;
+          title = 'Appointment Created';
+          body = `Doctor has created your Emergency appointment for ${reverseDate(createdApppointment.date)}`;
+          category = NotificationCategory.APPOINTMENT_STATUS;
+          icon = 'confirmed';
+          actionCategory = NotificationActionCategory.NONE;
+        } else {
+          phone = createdApppointment.doctorId;
+          type = UserType.DOCTOR;
+          title = 'New Appointment Request';
+          body = `Patient has raised an Emergency appointment request for ${reverseDate(createdApppointment.date)} at ${formatTimeTo12Hour(createdApppointment.startTime)}`;
+          category = NotificationCategory.APPOINTMENT_REQUEST;
+          icon = 'request';
+          actionCategory =
+            NotificationActionCategory.APPOINTMENT_REQUEST_ACTIONS;
+          screen = 'appointmentRequest';
+        }
+
         const notificationPayload = {
           user: {
-            phone:
-              AppointmentByType[createAppointmentDto.originEntity] ===
-              AppointmentByType.DOCTOR
-                ? createdApppointment.patientId
-                : createdApppointment.doctorId,
-            type:
-              AppointmentByType[createAppointmentDto.originEntity] ===
-              AppointmentByType.DOCTOR
-                ? UserType.PATIENT
-                : UserType.DOCTOR,
+            phone,
+            type,
           },
-          title:
-            AppointmentByType[createAppointmentDto.originEntity] ===
-            AppointmentByType.DOCTOR
-              ? 'Appointment Created'
-              : 'New Appointment Request',
-          body:
-            AppointmentByType[createAppointmentDto.originEntity] ===
-            AppointmentByType.DOCTOR
-              ? `Doctor has created your Emergency appointment for ${reverseDate(createdApppointment.date)}`
-              : `Patient has raised an Emergency appointment request for ${reverseDate(createdApppointment.date)} at ${formatTimeTo12Hour(createdApppointment.startTime)}`,
+          title,
+          body,
           data: {
             notificationId: '',
-            category:
-              AppointmentByType[createAppointmentDto.originEntity] ===
-              AppointmentByType.DOCTOR
-                ? NotificationCategory.APPOINTMENT_STATUS
-                : NotificationCategory.APPOINTMENT_REQUEST,
-            icon:
-              AppointmentByType[createAppointmentDto.originEntity] ===
-              AppointmentByType.DOCTOR
-                ? 'confirmed'
-                : 'request',
+            category,
+            icon,
             appointmentId: createdApppointment._id,
-            actionCategory:
-              AppointmentByType[createAppointmentDto.originEntity] ===
-              AppointmentByType.DOCTOR
-                ? NotificationActionCategory.NONE
-                : NotificationActionCategory.APPOINTMENT_REQUEST_ACTIONS,
+            actionCategory,
+            screen,
           },
         };
         console.info(
@@ -298,38 +305,45 @@ export class AppointmentService {
         const createdApppointment = await appointment.save();
 
         // send notification to doctor for opd appointment
+        let screen = '';
+        // let params: Record<string, any> = {};
+        let phone = '';
+        let type: UserType = UserType.DOCTOR;
+        let title = '';
+        let body = '';
+        let icon = '';
+
+        if (
+          AppointmentByType[createAppointmentDto.originEntity] ===
+          AppointmentByType.DOCTOR
+        ) {
+          phone = createdApppointment.patientId;
+          type = UserType.PATIENT;
+          title = 'Appointment Created';
+          body = `Doctor has created your appointment for ${reverseDate(createdApppointment.date)}`;
+          icon = 'confirmed';
+        } else {
+          phone = createdApppointment.doctorId;
+          type = UserType.DOCTOR;
+          title = 'New Appointment Request';
+          body = `Patient has raised an OPD appointment request for ${reverseDate(createdApppointment.date)} at ${formatTimeTo12Hour(createdApppointment.startTime)}`;
+          icon = 'request';
+          screen = 'appointmentRequest';
+        }
+
         const notificationPayload = {
           user: {
-            phone:
-              AppointmentByType[createAppointmentDto.originEntity] ===
-              AppointmentByType.DOCTOR
-                ? createdApppointment.patientId
-                : createdApppointment.doctorId,
-            type:
-              AppointmentByType[createAppointmentDto.originEntity] ===
-              AppointmentByType.DOCTOR
-                ? UserType.PATIENT
-                : UserType.DOCTOR,
+            phone,
+            type,
           },
-          title:
-            AppointmentByType[createAppointmentDto.originEntity] ===
-            AppointmentByType.DOCTOR
-              ? 'Appointment Created'
-              : 'New Appointment Request',
-          body:
-            AppointmentByType[createAppointmentDto.originEntity] ===
-            AppointmentByType.DOCTOR
-              ? `Doctor has created your appointment for ${reverseDate(createdApppointment.date)}`
-              : `Patient has raised an OPD appointment request for ${reverseDate(createdApppointment.date)} at ${formatTimeTo12Hour(createdApppointment.startTime)}`,
+          title,
+          body,
           data: {
             notificationId: '',
             category: NotificationCategory.APPOINTMENT_REQUEST,
-            icon:
-              AppointmentByType[createAppointmentDto.originEntity] ===
-              AppointmentByType.DOCTOR
-                ? 'confirmed'
-                : 'request',
+            icon,
             appointmentId: createdApppointment._id,
+            screen,
           },
         };
         console.info(
@@ -640,32 +654,40 @@ export class AppointmentService {
         appointmentUpdateType === AppointmentUpdateType.ACCEPT ||
         appointmentUpdateType === AppointmentUpdateType.CANCEL
       ) {
+        // let screen = '';
+        // let params: Record<string, any> = {};
+        let phone = '';
+        let type: UserType = UserType.DOCTOR;
+        let title = '';
+        let body = '';
+        let icon = '';
+        if (appointmentUpdateBy === 'DOCTOR') {
+          phone = currentAppointment.patientId;
+          type = UserType.PATIENT;
+        } else {
+          phone = currentAppointment.doctorId;
+          type = UserType.DOCTOR;
+        }
+        if (appointmentUpdateType === AppointmentUpdateType.ACCEPT) {
+          title = 'Appointment Accepted.';
+          body = `Doctor has accepted your appointment for ${reverseDate(currentAppointment.date)}`;
+          icon = 'confirmed';
+        } else {
+          title = 'Appointment Cancelled.';
+          body = `${appointmentUpdateBy === 'DOCTOR' ? 'Doctor' : 'Patient'} has cancelled your appointment for ${reverseDate(currentAppointment.date)}`;
+          icon = 'cancelled';
+        }
         const notificationPayload = {
           user: {
-            phone:
-              appointmentUpdateBy === 'DOCTOR'
-                ? currentAppointment.patientId
-                : currentAppointment.doctorId,
-            type:
-              appointmentUpdateBy === 'DOCTOR'
-                ? UserType.PATIENT
-                : UserType.DOCTOR,
+            phone,
+            type,
           },
-          title:
-            appointmentUpdateType === AppointmentUpdateType.ACCEPT
-              ? 'Appointment Accepted.'
-              : 'Appointment Cancelled.',
-          body:
-            appointmentUpdateType === AppointmentUpdateType.ACCEPT
-              ? `Doctor has accepted your appointment for ${reverseDate(currentAppointment.date)}`
-              : `${appointmentUpdateBy === 'DOCTOR' ? 'Doctor' : 'Patient'} has cancelled your appointment for ${reverseDate(currentAppointment.date)}`,
+          title,
+          body,
           data: {
             notificationId: '',
             category: NotificationCategory.APPOINTMENT_STATUS,
-            icon:
-              appointmentUpdateType === AppointmentUpdateType.ACCEPT
-                ? 'confirmed'
-                : 'cancelled',
+            icon,
             appointmentId: currentAppointment._id,
           },
         };

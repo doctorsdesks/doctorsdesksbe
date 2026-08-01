@@ -256,14 +256,28 @@ export class ClinicService {
         const doctor = updatedClinic.doctorId as any;
         const hospital = updatedClinic.hospitalId as any;
         let body = '';
+        let screen = '';
+        let params: Record<string, any> = {};
         if (
           updateClinicData?.feeFollowupPayload &&
           updateClinicData?.timingPayload
         ) {
           body = `${hospital.hospitalName} updated the clinic fee and timings.`;
+          screen = 'clinicDetailClinics';
+          params = {
+            source: 'clinicFee',
+          };
         } else if (updateClinicData?.feeFollowupPayload) {
+          screen = 'clinicDetailClinics';
+          params = {
+            source: 'clinicFee',
+          };
           body = `${hospital.hospitalName} updated the clinic fee.`;
         } else if (updateClinicData?.timingPayload) {
+          screen = 'clinicDetailClinics';
+          params = {
+            source: 'clinicTiming',
+          };
           body = `${hospital.hospitalName} updated the clinic timings.`;
         }
         const notificationPayload = {
@@ -279,6 +293,8 @@ export class ClinicService {
             icon: '',
             clinicId: updatedClinic?._id,
             actionCategory: NotificationActionCategory.NONE,
+            screen: screen,
+            params: params,
           },
         };
 
